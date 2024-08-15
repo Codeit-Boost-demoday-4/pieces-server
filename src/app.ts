@@ -1,22 +1,35 @@
-import express, { Request, Response } from "express";
+import express from 'express';
+import sequelize from './models';
+import dotenv from "dotenv";
+
+dotenv.config(); // .env 파일의 환경 변수를 불러옵니다
+
+console.log('DB_USERNAME:', process.env.DB_USERNAME);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+console.log('DB_DBNAME:', process.env.DB_DBNAME);
+console.log('DB_HOST:', process.env.DB_HOST);
 
 const app = express();
+const PORT = process.env.PORT || 3000; //웹서버 포트
 
-type Data = {
-  name: string;
-  age: number;
-  url: string;
-};
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
 
-const sendData: Data = {
-  //test data입니다.
-  name: "name",
-  age: 3,
-  url: "tistory.com",
-};
+    // 모든 모델을 동기화
+    return sequelize.sync({ force: true }); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
+  })
+  .then(() => {
+    console.log('All models were synchronized successfully.');
 
-app.get("/get", (req: Request, res: Response) => {
-  res.send(sendData);
-});
+  })
 
-app.listen(8080)
+  .catch((error) => {
+    console.error('Unable to connect to the database:', error);
+  });
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+  
+export default app;
