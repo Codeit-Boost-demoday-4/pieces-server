@@ -1,7 +1,5 @@
-# Node.js의 기본적 무시 항목
-node_modules/
-dist/
-build/
+# Node.js의 기본 무시 항목
+#node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
