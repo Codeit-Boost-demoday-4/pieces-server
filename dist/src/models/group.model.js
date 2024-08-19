@@ -38,6 +38,21 @@ class Group extends sequelize_1.Model {
                 type: sequelize_1.DataTypes.DATE,
                 allowNull: true,
             },
+            likeCount: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
+            badgeCount: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
+            postCount: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
         }, {
             sequelize,
             modelName: 'Group',
