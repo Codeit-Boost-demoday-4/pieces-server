@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import GroupService from '../services/group.service';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 class GroupController {
       /**
