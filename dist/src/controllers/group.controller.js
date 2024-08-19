@@ -24,7 +24,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const group_service_1 = __importDefault(require("../services/group.service"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class GroupController {
     /**
  * @swagger
@@ -68,7 +68,7 @@ class GroupController {
                 const { name, imageUrl, introduction, isPublic, password } = req.body;
                 // 비밀번호를 해시화하여 저장
                 const saltRounds = 10;
-                const passwordHash = yield bcrypt_1.default.hash(password, saltRounds);
+                const passwordHash = yield bcryptjs_1.default.hash(password, saltRounds);
                 const group = yield group_service_1.default.createGroup({
                     name,
                     imageUrl,
