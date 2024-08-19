@@ -27,12 +27,12 @@ class GroupService {
             const publicGroups = yield group_model_1.default.findAll({
                 //공개그룹 조회
                 where: { isPublic: true },
-                attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'likeCount', 'badgeCount', 'postCount', 'createdAt'],
+                attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt'],
             });
             //비공개그룹 조회
             const privateGroups = yield group_model_1.default.findAll({
                 where: { isPublic: false },
-                attributes: ['id', 'name', 'isPublic', 'introduction', 'likeCount', 'postCount', 'createdAt'],
+                attributes: ['id', 'name', 'isPublic', 'introduction', 'createdAt'],
             });
             return { publicGroups, privateGroups };
         });
