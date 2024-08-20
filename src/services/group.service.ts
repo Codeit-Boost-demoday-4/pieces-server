@@ -19,13 +19,13 @@ class GroupService {
     const publicGroups = await Group.findAll({
         //공개그룹 조회
       where: { isPublic: true },
-      attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt'],
+      attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
     });
 
     //비공개그룹 조회
     const privateGroups = await Group.findAll({
       where: { isPublic: false },
-      attributes: ['id', 'name', 'isPublic', 'introduction', 'createdAt'],
+      attributes: ['id', 'name', 'isPublic', 'introduction', 'createdAt','postCount', 'likeCount'],
     });
 
     return { publicGroups, privateGroups };

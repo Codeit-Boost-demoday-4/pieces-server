@@ -106,7 +106,7 @@ class GroupController {
       const groups = await GroupService.getGroups();
       res.status(200).json(groups);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to retrieve groups' });
+      res.status(500).json({ error: '그룹 조회에 실패했습니다.' });
     }
   }
 }

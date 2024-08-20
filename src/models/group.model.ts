@@ -10,11 +10,9 @@ interface GroupAttributes {
   createdAt: Date;
   updatedAt?: Date; //선택적 필드
   deletedAt?: Date; //선택적 필드
-  /*
   likeCount?: number;
   badgeCount?: number;
   postCount?: number;
-  */
 }
 
 /*
@@ -36,11 +34,9 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> implements G
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
-  /*
   public likeCount!: number;
   public badgeCount!: number;
   public postCount!: number;
-  */
 
 
 static initModel(sequelize: Sequelize) {
@@ -79,7 +75,6 @@ static initModel(sequelize: Sequelize) {
           type: DataTypes.DATE,
           allowNull: true,
         },
-/*
         likeCount: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -95,11 +90,9 @@ static initModel(sequelize: Sequelize) {
             allowNull: false,
             defaultValue: 0,
           },            
-*/
       },
       {
         sequelize,
-        modelName: 'Group',
         tableName: 'groups',
         charset: 'utf8',
         collate: 'utf8_general_ci', // 한글 저장
