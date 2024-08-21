@@ -25,18 +25,18 @@ const PORT = process.env.PORT || 3000; //웹서버 포트
 
 sequelize.authenticate()
   .then(() => {
-    console.log('Connection has been established successfully.');
+    console.log('연결에 성공했습니다.');
 
     // 모든 모델을 동기화
     return sequelize.sync({ alter: true }); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
   })
   .then(() => {
-    console.log('All models were synchronized successfully.');
+    console.log('모든 모델 동기화에 성공했습니다.');
 
   })
 
   .catch((error) => {
-    console.error('Unable to connect to the database:', error);
+    console.error('데이터베이스에 연결할 수 없습니다.:', error);
   });
 
   app.listen(PORT, () => {

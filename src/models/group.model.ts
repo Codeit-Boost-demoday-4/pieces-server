@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
 
 // 모델의 속성 인터페이스 정의
 interface GroupAttributes {
+  id: number;
   name: string;
   imageUrl: string;
   introduction: string;
@@ -26,6 +27,7 @@ interface GroupCreationAttributes extends Optional<GroupAttributes, 'createdAt' 
 
 // Sequelize 모델 정의
 class Group extends Model<GroupAttributes, GroupCreationAttributes> implements GroupAttributes {
+  public id!: number; // 기본 키로 사용할 id 필드 추가
   public name!: string; // 속성뒤 !는 not null을 의미
   public imageUrl!: string;
   public introduction!: string;
@@ -42,6 +44,11 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> implements G
 static initModel(sequelize: Sequelize) {
     Group.init(
       {
+        id: {
+            type: DataTypes.INTEGER.UNSIGNED, // 부호 없는 정수
+            autoIncrement: true, // 자동 증가
+            primaryKey: true, // 기본 키
+          },
         name: {
           type: DataTypes.STRING,
           allowNull: false,

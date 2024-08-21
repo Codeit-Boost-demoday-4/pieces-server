@@ -1,4 +1,3 @@
-/*
 //migration을 위한 설정 파일
 
 const path = require('path');
@@ -9,5 +8,3 @@ module.exports = {
   'seeders-path': path.resolve('dist/src/seeders'), // seeders 경로 설정
   'migrations-path': path.resolve('dist/src/migrations') // migrations 경로 설정
 };
-
-*/
