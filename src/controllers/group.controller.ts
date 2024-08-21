@@ -66,50 +66,54 @@ class GroupController {
   }
 
 /**
- * @swagger
- * /api/groups:
- *   get:
- *     summary: 모든 그룹을 조회합니다.
- *     description: Retrieve a list of all groups, including public and private groups.
- *     tags:
- *       - Groups
- *     responses:
- *       200:
- *         description: A list of groups
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                     description: The name of the group
- *                   imageUrl:
- *                     type: string
- *                     description: URL of the group's image
- *                   introduction:
- *                     type: string
- *                     description: Introduction to the group
- *                   isPublic:
- *                     type: boolean
- *                     description: Indicates if the group is public
- *                   createdAt:
- *                     type: string
- *                     format: date-time
- *                     description: Creation timestamp of the group
- *       500:
- *         description: Server error
- */
-  async getGroups(req: Request, res: Response) {
-    try {
-      const groups = await GroupService.getGroups();
-      res.status(200).json(groups);
-    } catch (error) {
-      res.status(500).json({ error: '그룹 조회에 실패했습니다.' });
-    }
+   * @swagger
+   * /api/groups:
+   *   get:
+   *     summary: 그룹을 조회합니다.
+   *     description: 공개여부에 따라 그룹을 조회합니다. undefined인 경우 모든 그룹을 조회합니다.
+   *     tags:
+   *       - Groups
+   *     parameters:
+   *       - in: query
+   *         name: isPublic
+   *         schema:
+   *           type: boolean
+   *         description: '그룹의 공개 여부 (true: 공개, false: 비공개)'
+   *     responses:
+   *       200:
+   *         description: A list of groups
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: integer
+   *                   name:
+   *                     type: string
+   *                   imageUrl:
+   *                     type: string
+   *                   introduction:
+   *                     type: string
+   *                   isPublic:
+   *                     type: boolean
+   *                   createdAt:
+   *                     type: string
+   *                     format: date-time
+   *       500:
+   *         description: Server error
+   */
+async getGroups(req: Request, res: Response) {
+  try {
+    const isPublic = req.query.isPublic === 'true' ? true : req.query.isPublic === 'false' ? false : undefined;
+    const groups = await GroupService.getGroups(isPublic);
+    res.status(200).json(groups);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
+}
 
   async getGroupById(req: Request, res: Response) {
     try {
@@ -117,7 +121,7 @@ class GroupController {
         const group = await GroupService.getGroupById(parseInt(id));
         res.status(200).json(group);
     } catch (error) {
-        res.status(404).json({ error: '그룹을 찾을 수 없습니다.' });
+        res.status(404).json({ error: '페이지를 찾을 수 없습니다.' });
     }
 }
 

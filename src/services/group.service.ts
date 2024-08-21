@@ -24,8 +24,31 @@ class GroupService {
     return group;
   }
 
-  // 그룹 조회
-  async getGroups() {
+  // 공개/비공개 그룹 따로 조회
+  async getGroups(isPublic?: boolean) {
+    let query: any = {};
+
+    if (isPublic !== undefined) {
+      query.isPublic = isPublic;
+    }
+
+    const groups = await Group.findAll({
+      where: query,
+      attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
+    });
+
+    return groups;
+  }
+
+
+  /* 모든 그룹 조회
+  async getGroups(isPublic?: boolean) {
+    let query: any = {};
+
+    if (isPublic !== undefined) {
+      query.isPublic = isPublic;
+    }
+    
     const publicGroups = await Group.findAll({
         //공개그룹 조회
       where: { isPublic: true },
@@ -40,7 +63,7 @@ class GroupService {
 
     return { publicGroups, privateGroups };
   }
-
+*/
   
   // 그룹 수정
   async updateGroup(id: number, data: Partial<{
