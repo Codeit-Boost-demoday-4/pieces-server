@@ -2,6 +2,7 @@ import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
 
 // 모델의 속성 인터페이스 정의
 interface GroupAttributes {
+  id: number;
   name: string;
   imageUrl: string;
   introduction: string;
@@ -10,11 +11,9 @@ interface GroupAttributes {
   createdAt: Date;
   updatedAt?: Date; //선택적 필드
   deletedAt?: Date; //선택적 필드
-  /*
   likeCount?: number;
   badgeCount?: number;
   postCount?: number;
-  */
 }
 
 /*
@@ -28,6 +27,7 @@ interface GroupCreationAttributes extends Optional<GroupAttributes, 'createdAt' 
 
 // Sequelize 모델 정의
 class Group extends Model<GroupAttributes, GroupCreationAttributes> implements GroupAttributes {
+  public id!: number; // 기본 키로 사용할 id 필드 추가
   public name!: string; // 속성뒤 !는 not null을 의미
   public imageUrl!: string;
   public introduction!: string;
@@ -36,16 +36,19 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> implements G
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
-  /*
   public likeCount!: number;
   public badgeCount!: number;
   public postCount!: number;
-  */
 
 
 static initModel(sequelize: Sequelize) {
     Group.init(
       {
+        id: {
+            type: DataTypes.INTEGER.UNSIGNED, // 부호 없는 정수
+            autoIncrement: true, // 자동 증가
+            primaryKey: true, // 기본 키
+          },
         name: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -79,7 +82,6 @@ static initModel(sequelize: Sequelize) {
           type: DataTypes.DATE,
           allowNull: true,
         },
-/*
         likeCount: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -95,11 +97,9 @@ static initModel(sequelize: Sequelize) {
             allowNull: false,
             defaultValue: 0,
           },            
-*/
       },
       {
         sequelize,
-        modelName: 'Group',
         tableName: 'groups',
         charset: 'utf8',
         collate: 'utf8_general_ci', // 한글 저장
