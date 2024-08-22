@@ -260,5 +260,56 @@ async getGroups(req: Request, res: Response) {
         res.status(400).json({ error: '잘못된 요청입니다' });
       }
   }
+
+    /**
+   * @swagger
+   * /api/groups/{id}/verify-password:
+   *   post:
+   *     summary: 그룹 접근 시 비밀번호를 검증합니다.
+   *     tags:
+   *       - Groups
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: 검증할 그룹의 ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               password:
+   *                 type: string
+   *                 description: 그룹 비밀번호
+   *             example:
+   *               password: "password123"
+   *     responses:
+   *       200:
+   *         description: 비밀번호가 확인되었습니다.
+   *       403:
+   *         description: 비밀번호가 틀렸습니다.
+   *       404:
+   *         description: 그룹을 찾을 수 없습니다.
+   */
+    async verifyGroupPassword(req: Request, res: Response) {
+      try {
+        const { id } = req.params;
+        const { password } = req.body;
+  
+        const isValid = await GroupService.verifyGroupPassword(parseInt(id), password);
+  
+        if (isValid) {
+          res.status(200).json({ message: '비밀번호가 확인되었습니다.' });
+        } else {
+          res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
+        }
+      } catch (error) {
+        res.status(404).json({ error: '그룹을 찾을 수 없습니다.' });
+      }
+    }
 }
 export default new GroupController();

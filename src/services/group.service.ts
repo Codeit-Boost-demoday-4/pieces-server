@@ -1,5 +1,6 @@
 import Group from '../models/group.model'; // Group 모델 import
-
+import bcrypt from 'bcryptjs';
+ 
 class GroupService {
 
 // ID로 특정 그룹 가져오기
@@ -83,6 +84,13 @@ class GroupService {
     await group.destroy();
     return { message: '그룹을 성공적으로 삭제했습니다.' };
   }
+
+    // 비밀번호 검증 메소드
+    async verifyGroupPassword(id: number, password: string): Promise<boolean> {
+      const group = await this.getGroupById(id);
+      const isMatch = await bcrypt.compare(password, group.passwordHash);
+      return isMatch;
+    }
 }
 
 

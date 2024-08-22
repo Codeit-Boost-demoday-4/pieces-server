@@ -16,12 +16,6 @@ interface GroupAttributes {
   postCount?: number;
 }
 
-/*
-timestamps 옵션을 true로 설정하면, createdAt과 updatedAt 필드가 자동으로 관리됩니다. 
-이 경우 모델 인스턴스를 생성할 때 createdAt 필드를 명시적으로 지정할 필요가 없습니다.
-그래도 일단 넣어봤어요
-*/
-
 // 일부 필드만 필수로 지정할 수 있도록 인터페이스 확장
 interface GroupCreationAttributes extends Optional<GroupAttributes, 'createdAt' | 'updatedAt'> {}
 
