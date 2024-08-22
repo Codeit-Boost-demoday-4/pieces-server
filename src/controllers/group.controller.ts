@@ -343,5 +343,46 @@ async getGroups(req: Request, res: Response) {
       res.status(404).json({ error: '존재하지 않습니다.' });
     }
   }
+
+  /**
+   * @swagger
+   * /api/groups/{id}/is-public:
+   *   get:
+   *     summary: 그룹의 공개 여부를 확인합니다.
+   *     tags:
+   *       - Groups
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: 공개 여부를 확인할 그룹의 ID
+   *     responses:
+   *       200:
+   *         description: 그룹의 공개 여부를 반환합니다.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: integer
+   *                 isPublic:
+   *                   type: boolean
+   *       404:
+   *         description: 존재하지 않습니다.
+   */
+  async checkGroupIsPublic(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const groupStatus = await GroupService.checkIfGroupIsPublic(parseInt(id));
+
+      res.status(200).json(groupStatus);
+    } catch (error) {
+      res.status(404).json({ error: '존재하지 않습니다.' });
+    }
+  }
 }
 export default new GroupController();

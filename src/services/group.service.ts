@@ -99,6 +99,12 @@ class GroupService {
     await group.save();
     return group;
   }
+
+// 그룹 공개 여부 확인
+  async checkIfGroupIsPublic(id: number): Promise<{ id: number; isPublic: boolean }> {
+    const group = await this.getGroupById(id);
+    return { id: group.id, isPublic: group.isPublic };
+  }
 }
 
 
