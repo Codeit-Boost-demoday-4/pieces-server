@@ -1,5 +1,6 @@
 import Group from '../models/group.model'; // Group 모델 import
-
+import bcrypt from 'bcryptjs';
+ 
 class GroupService {
 
 // ID로 특정 그룹 가져오기
@@ -24,7 +25,7 @@ class GroupService {
     return group;
   }
 
-  // 공개/비공개 그룹 따로 조회
+// 공개/비공개 그룹 따로 조회
   async getGroups(isPublic?: boolean) {
     let query: any = {};
 
@@ -65,7 +66,7 @@ class GroupService {
   }
 */
   
-  // 그룹 수정
+// 그룹 수정
   async updateGroup(id: number, data: Partial<{
     name: string;
     imageUrl: string;
@@ -77,11 +78,32 @@ class GroupService {
     return group;
   }
 
-  // 그룹 삭제
+// 그룹 삭제
   async deleteGroup(id: number) {
     const group = await this.getGroupById(id);
     await group.destroy();
     return { message: '그룹을 성공적으로 삭제했습니다.' };
+  }
+
+// 비밀번호 검증 메소드
+    async verifyGroupPassword(id: number, password: string): Promise<boolean> {
+      const group = await this.getGroupById(id);
+      const isMatch = await bcrypt.compare(password, group.passwordHash);
+      return isMatch;
+    }
+
+// like 공감 메소드
+  async incrementLikeCount(id: number): Promise<Group> {
+    const group = await this.getGroupById(id);
+    group.likeCount += 1;
+    await group.save();
+    return group;
+  }
+
+// 그룹 공개 여부 확인
+  async checkIfGroupIsPublic(id: number): Promise<{ id: number; isPublic: boolean }> {
+    const group = await this.getGroupById(id);
+    return { id: group.id, isPublic: group.isPublic };
   }
 }
 
