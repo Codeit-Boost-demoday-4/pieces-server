@@ -121,7 +121,7 @@ async getGroups(req: Request, res: Response) {
         const group = await GroupService.getGroupById(parseInt(id));
         res.status(200).json(group);
     } catch (error) {
-        res.status(404).json({ error: '페이지를 찾을 수 없습니다.' });
+        res.status(404).json({ error: '존재하지 않습니다.' });
     }
 }
 
@@ -169,9 +169,9 @@ async getGroups(req: Request, res: Response) {
    *       400:
    *         description: 잘못된 요청입니다.
    *       403:
-   *         description: 비밀번호가 일치하지 않습니다.
+   *         description: 비밀번호가 틀렸습니다.
    *       404:
-   *         description: 그룹을 찾을 수 없습니다.
+   *         description: 존재하지 않습니다.
    */
   async updateGroup(req: Request, res: Response) {
     try {
@@ -183,7 +183,7 @@ async getGroups(req: Request, res: Response) {
       // 비밀번호 확인
       const isMatch = await bcrypt.compare(password, group.passwordHash);
       if (!isMatch) {
-          return res.status(403).json({ error: '비밀번호가 일치하지 않습니다.' });
+          return res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
       }
 
       const updatedData: Partial<{
@@ -232,7 +232,7 @@ async getGroups(req: Request, res: Response) {
  *       200:
  *         description: 삭제 성공!
  *       403:
- *         description: 비밀번호가 일치하지 않습니다.
+ *         description: 비밀번호가 틀렸습니다.
  *       404:
  *         description: 그룹을 찾을 수 없습니다.
  *       400:
@@ -250,7 +250,7 @@ async getGroups(req: Request, res: Response) {
       // 비밀번호 확인
       const isMatch = await bcrypt.compare(password, group.passwordHash);
       if (!isMatch) {
-          return res.status(403).json({ error: '비밀번호가 일치하지 않습니다.' });
+          return res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
       }
 
       await GroupService.deleteGroup(parseInt(id));
@@ -293,7 +293,7 @@ async getGroups(req: Request, res: Response) {
    *       403:
    *         description: 비밀번호가 틀렸습니다.
    *       404:
-   *         description: 그룹을 찾을 수 없습니다.
+   *         description: 존재하지 않습니다.
    */
     async verifyGroupPassword(req: Request, res: Response) {
       try {
@@ -308,8 +308,40 @@ async getGroups(req: Request, res: Response) {
           res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
         }
       } catch (error) {
-        res.status(404).json({ error: '그룹을 찾을 수 없습니다.' });
+        res.status(404).json({ error: '존재하지 않습니다.' });
       }
     }
+
+  /**
+   * @swagger
+   * /api/groups/{id}/like:
+   *   post:
+   *     summary: 그룹의 likeCount를 1 증가시킵니다.
+   *     tags:
+   *       - Groups
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: like를 증가시킬 그룹의 ID
+   *     responses:
+   *       200:
+   *         description: 그룹 공감하기 성공
+   *       404:
+   *         description: 존재하지 않습니다.
+   */
+  async likeGroup(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const updatedGroup = await GroupService.incrementLikeCount(parseInt(id));
+
+      res.status(200).json({ message: '그룹 공감하기 성공', likeCount: updatedGroup.likeCount });
+    } catch (error) {
+      res.status(404).json({ error: '존재하지 않습니다.' });
+    }
+  }
 }
 export default new GroupController();

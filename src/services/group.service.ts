@@ -25,7 +25,7 @@ class GroupService {
     return group;
   }
 
-  // 공개/비공개 그룹 따로 조회
+// 공개/비공개 그룹 따로 조회
   async getGroups(isPublic?: boolean) {
     let query: any = {};
 
@@ -66,7 +66,7 @@ class GroupService {
   }
 */
   
-  // 그룹 수정
+// 그룹 수정
   async updateGroup(id: number, data: Partial<{
     name: string;
     imageUrl: string;
@@ -78,19 +78,27 @@ class GroupService {
     return group;
   }
 
-  // 그룹 삭제
+// 그룹 삭제
   async deleteGroup(id: number) {
     const group = await this.getGroupById(id);
     await group.destroy();
     return { message: '그룹을 성공적으로 삭제했습니다.' };
   }
 
-    // 비밀번호 검증 메소드
+// 비밀번호 검증 메소드
     async verifyGroupPassword(id: number, password: string): Promise<boolean> {
       const group = await this.getGroupById(id);
       const isMatch = await bcrypt.compare(password, group.passwordHash);
       return isMatch;
     }
+
+// like 공감 메소드
+  async incrementLikeCount(id: number): Promise<Group> {
+    const group = await this.getGroupById(id);
+    group.likeCount += 1;
+    await group.save();
+    return group;
+  }
 }
 
 
