@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import Group from '../models/group.model'; // Group 모델 import
 import bcrypt from 'bcryptjs';
  
@@ -25,13 +26,11 @@ class GroupService {
     return group;
   }
 
-// 공개/비공개 그룹 따로 조회
+// 공개,비공개 그룹 따로 조회
   async getGroups(isPublic?: boolean) {
-    let query: any = {};
-
-    if (isPublic !== undefined) {
-      query.isPublic = isPublic;
-    }
+    let query: any = {
+      isPublic
+    };
 
     const groups = await Group.findAll({
       where: query,
@@ -92,7 +91,7 @@ class GroupService {
       return isMatch;
     }
 
-// like 공감 메소드
+// 공감 메소드
   async incrementLikeCount(id: number): Promise<Group> {
     const group = await this.getGroupById(id);
     group.likeCount += 1;
@@ -105,6 +104,29 @@ class GroupService {
     const group = await this.getGroupById(id);
     return { id: group.id, isPublic: group.isPublic };
   }
+
+// 그룹명으로 그룹 검색
+  async getGroupsByName(isPublic: boolean, name?: string) {
+    let query: any = {
+      isPublic
+    };
+  
+    // 그룹 이름으로 검색
+    if (name) {
+      query.name = {
+        [Op.like]: `%${name}%`,  // 부분 일치 검색, 대소문자 구분 x
+      };
+    }
+  
+    // 그룹을 조회
+    const groups = await Group.findAll({
+      where: query,
+      attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
+    });
+  
+    return groups;
+  }
+
 }
 
 
