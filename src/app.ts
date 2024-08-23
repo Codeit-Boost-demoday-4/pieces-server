@@ -18,8 +18,8 @@ app.use(express.json());
 // Swagger 설정 추가
 setupSwagger(app);
 
-// '/api' prefix로 라우터를 등록, group router가 /api를 거치게됨 (ex: /api/groups)
-app.use('/api', groupRouter);  
+// '/api' prefix로 라우터를 등록, group router가 /api/groups를 거치게됨 (ex: /api/groups)
+app.use('/api/groups', groupRouter);  
 
 const PORT = process.env.PORT || 3000; //웹서버 포트
 

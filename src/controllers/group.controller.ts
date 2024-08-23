@@ -70,7 +70,7 @@ class GroupController {
    * /api/groups:
    *   get:
    *     summary: 그룹을 조회합니다.
-   *     description: 공개여부에 따라 그룹을 조회합니다. undefined인 경우 모든 그룹을 조회합니다.
+   *     description: 공개여부에 따라 그룹을 조회합니다.
    *     tags:
    *       - Groups
    *     parameters:
@@ -78,6 +78,7 @@ class GroupController {
    *         name: isPublic
    *         schema:
    *           type: boolean
+   *           default: true
    *         description: '그룹의 공개 여부 (true: 공개, false: 비공개)'
    *     responses:
    *       200:
@@ -107,7 +108,7 @@ class GroupController {
    */
 async getGroups(req: Request, res: Response) {
   try {
-    const isPublic = req.query.isPublic === 'true' ? true : req.query.isPublic === 'false' ? false : undefined;
+    const isPublic = req.query.isPublic === 'false' ? false : true; // 기본값은 true
     const groups = await GroupService.getGroups(isPublic);
     res.status(200).json(groups);
   } catch (error) {
@@ -384,5 +385,80 @@ async getGroups(req: Request, res: Response) {
       res.status(404).json({ error: '존재하지 않습니다.' });
     }
   }
+
+  /**
+   * @swagger
+   * /api/groups/search:
+   *   get:
+   *     summary: 그룹을 조회합니다. 공개 여부와 이름으로 검색할 수 있습니다.
+   *     tags:
+   *       - Groups
+   *     parameters:
+   *       - in: query
+   *         name: isPublic
+   *         schema:
+   *           type: boolean
+   *           default: true
+   *           description: '그룹의 공개 여부 (true: 공개, false: 비공개).'
+   *       - in: query
+   *         name: name
+   *         schema:
+   *           type: string
+   *           description: '검색할 그룹 이름'
+   *     responses:
+   *       200:
+   *         description: 조회 성공
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: integer
+   *                   name:
+   *                     type: string
+   *                   imageUrl:
+   *                     type: string
+   *                   introduction:
+   *                     type: string
+   *                   isPublic:
+   *                     type: boolean
+   *                   createdAt:
+   *                     type: string
+   *                     format: date-time
+   *                   postCount:
+   *                     type: integer
+   *                   likeCount:
+   *                     type: integer
+   *                   badgeCount:
+   *                     type: integer
+   *       500:
+   *         description: 서버 오류
+   */
+  async getGroupsByName(req: Request, res: Response) {
+    try {
+      // 쿼리 매개변수에서 isPublic과 name을 가져옵니다.
+      const isPublic = req.query.isPublic === 'false' ? false : true; // 기본값은 true
+      const name = req.query.name as string;
+
+          // 입력된 쿼리 매개변수 로깅
+    console.log(`Query Parameters - isPublic: ${isPublic}, name: ${name}`);
+
+      // 그룹 조회 서비스 호출
+      const groups = await GroupService.getGroupsByName(isPublic, name);
+
+          // 조회된 그룹을 반환하기 전에 로깅
+    console.log('Retrieved Groups: ', groups);
+
+      // 조회된 그룹 반환
+      res.status(200).json(groups);
+    } catch (error) {
+      // 서버 오류 처리
+      res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    }
+  }
+
 }
 export default new GroupController();
