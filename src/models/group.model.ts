@@ -34,7 +34,6 @@ class Group extends Model<GroupAttributes, GroupCreationAttributes> implements G
   public badgeCount!: number;
   public postCount!: number;
 
-
 static initModel(sequelize: Sequelize) {
     Group.init(
       {
