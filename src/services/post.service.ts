@@ -18,8 +18,7 @@ class PostService {
     moment?: Date;
     isPublic: boolean;
   }) {
-    // 그룹 조회 및 비밀번호 검증
-    const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(data.groupId);
 
     if (!group) {
       return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
@@ -33,10 +32,9 @@ class PostService {
     }
 
     try {
-      // 게시글 생성
       const post = await Post.create({
         nickname: data.nickname,
-        groupId,
+        groupId: data.groupId,
         title: data.title,
         content: data.content,
         postPassword: data.postPassword,
@@ -46,7 +44,6 @@ class PostService {
         isPublic: data.isPublic,
       });
 
-      // 만약 태그 데이터가 포함되어 있다면, 태그를 연결
       if (data.tags && data.tags.length > 0) {
         const tags = await Tag.findAll({
           where: {
@@ -56,7 +53,6 @@ class PostService {
         await post.setTags(tags);
       }
 
-      // 생성된 포스트의 데이터를 가공하여 반환
       const postWithTags = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
       });
@@ -85,7 +81,7 @@ class PostService {
     }
   }
 
-  //게시글 조회
+  // 게시글 조회
   async getPosts(params: {
     page: number;
     pageSize: number;
@@ -96,7 +92,6 @@ class PostService {
   }) {
     const { page, pageSize, sortBy, keyword, isPublic, groupId } = params;
 
-    // 기본 where 조건
     const where: any = {};
 
     if (isPublic !== undefined) {
@@ -111,15 +106,13 @@ class PostService {
       where.groupId = groupId;
     }
 
-    // 정렬 기준 설정
-    let order: any[] = [["createdAt", "DESC"]]; // 기본 정렬은 최신순
+    let order: any[] = [["createdAt", "DESC"]];
     if (sortBy === "mostCommented") {
       order = [["commentCount", "DESC"]];
     } else if (sortBy === "mostLiked") {
       order = [["likeCount", "DESC"]];
     }
 
-    // 페이지네이션 처리
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
 
@@ -191,20 +184,17 @@ class PostService {
       isPublic: boolean;
     }
   ) {
-    // 게시글을 찾음
     const post = await Post.findByPk(postId);
 
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
     }
 
-    // 비밀번호 확인
     if (post.postPassword !== data.postPassword) {
       return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
     }
 
     try {
-      // 게시글 업데이트
       await post.update({
         nickname: data.nickname,
         title: data.title,
@@ -216,7 +206,6 @@ class PostService {
         isPublic: data.isPublic,
       });
 
-      // 태그 업데이트
       if (data.tags && data.tags.length > 0) {
         const tags = await Tag.findAll({
           where: {
@@ -226,7 +215,6 @@ class PostService {
         await post.setTags(tags);
       }
 
-      // 업데이트된 게시글과 태그 포함하여 반환
       const updatedPost = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
       });
@@ -244,8 +232,8 @@ class PostService {
           location: updatedPost?.location,
           moment: updatedPost?.moment,
           isPublic: updatedPost?.isPublic,
-          likeCount: 0, // 실제 데이터베이스에서 좋아요 개수를 가져오도록 수정 필요
-          commentCount: 0, // 실제 데이터베이스에서 댓글 개수를 가져오도록 수정 필요
+          likeCount: 0,
+          commentCount: 0,
           createdAt: updatedPost?.createdAt,
         },
       };
@@ -257,23 +245,18 @@ class PostService {
 
   // 게시글 삭제
   async deletePost(postId: number, data: { postPassword: string }) {
+    const post = await Post.findByPk(postId);
+
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    if (post.postPassword !== data.postPassword) {
+      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
+    }
+
     try {
-      // 게시글을 ID로 찾음
-      const post = await Post.findByPk(postId);
-
-      // 게시글이 존재하지 않는 경우
-      if (!post) {
-        return { status: 404, response: { message: "존재하지 않습니다" } };
-      }
-
-      // 비밀번호 확인
-      if (post.postPassword !== data.postPassword) {
-        return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
-      }
-
-      // 게시글 삭제
       await post.destroy();
-
       return { status: 200, response: { message: "게시글 삭제 성공" } };
     } catch (error) {
       console.error(error);
