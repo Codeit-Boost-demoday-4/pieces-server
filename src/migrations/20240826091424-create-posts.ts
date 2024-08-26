@@ -1,28 +1,22 @@
-"use strict";
+import { QueryInterface, DataTypes } from "sequelize";
 
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
-  async up(queryInterface, Sequelize) {
+export default {
+  async up(queryInterface: QueryInterface) {
     // 테이블 생성
     await queryInterface.createTable("posts", {
       id: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      userId: {
-        type: Sequelize.INTEGER,
+      nickname: {
+        type: DataTypes.STRING,
         allowNull: false,
-        references: {
-          // 외래 키 설정
-          model: "users", // 참조하는 테이블 이름
-          key: "id", // 참조하는 칼럼 이름
-        },
         onDelete: "CASCADE", // 사용자 삭제 시 게시물도 함께 삭제
       },
       groupId: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           // 외래 키 설정
@@ -32,51 +26,51 @@ module.exports = {
         onDelete: "CASCADE",
       },
       title: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       postPassword: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       imageUrl: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       content: {
-        type: Sequelize.TEXT,
+        type: DataTypes.TEXT,
         allowNull: true, // content는 optional
       },
       location: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       moment: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: true,
       },
       isPublic: {
-        type: Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
       },
       createdAt: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        defaultValue: DataTypes.NOW,
       },
       updatedAt: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: true,
       },
       deletedAt: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: true,
       },
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface: QueryInterface) {
     // 테이블 삭제 (롤백)
     await queryInterface.dropTable("posts");
   },

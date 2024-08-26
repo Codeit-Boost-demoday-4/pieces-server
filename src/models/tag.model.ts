@@ -39,6 +39,15 @@ class Tag
       }
     );
   }
+
+  // 관계 설정
+  static associate(models: any) {
+    Tag.belongsToMany(models.Post, {
+      through: models.PostTag,
+      foreignKey: "tagId",
+      as: "posts",
+    });
+  }
 }
 
 export default Tag;

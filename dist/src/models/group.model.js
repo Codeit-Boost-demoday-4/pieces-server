@@ -5,6 +5,11 @@ const sequelize_1 = require("sequelize");
 class Group extends sequelize_1.Model {
     static initModel(sequelize) {
         Group.init({
+            id: {
+                type: sequelize_1.DataTypes.INTEGER.UNSIGNED, // 부호 없는 정수
+                autoIncrement: true, // 자동 증가
+                primaryKey: true, // 기본 키
+            },
             name: {
                 type: sequelize_1.DataTypes.STRING,
                 allowNull: false,
@@ -55,7 +60,6 @@ class Group extends sequelize_1.Model {
             },
         }, {
             sequelize,
-            modelName: 'Group',
             tableName: 'groups',
             charset: 'utf8',
             collate: 'utf8_general_ci', // 한글 저장

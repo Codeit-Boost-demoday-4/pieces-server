@@ -5,6 +5,7 @@ interface CommentAttributes {
   nickname: string;
   postId: number;
   content: string;
+  password: string;
   createdAt: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -21,6 +22,7 @@ class Comment
   public nickname!: string;
   public postId!: number;
   public content!: string;
+  public password!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
@@ -43,6 +45,10 @@ class Comment
         },
         content: {
           type: DataTypes.TEXT,
+          allowNull: false,
+        },
+        password: {
+          type: DataTypes.STRING,
           allowNull: false,
         },
         createdAt: {

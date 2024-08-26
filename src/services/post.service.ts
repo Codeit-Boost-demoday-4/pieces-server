@@ -3,7 +3,7 @@ import Tag from "../models/tag.model";
 
 class PostService {
   async createPost(data: {
-    userId: number;
+    nickname: string;
     groupId: number;
     title: string;
     content: string;
@@ -72,7 +72,7 @@ class PostService {
     });
 
     const privatePosts = await Post.findAll({
-      where: { isPublic: true },
+      where: { isPublic: false },
       attributes: [
         "id",
         "groupId",

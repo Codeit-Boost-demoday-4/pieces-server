@@ -8,7 +8,7 @@
     "start": "node dist/src/app.js",
     "dev": "nodemon --watch \"*.ts\" --exec \"ts-node\" src/app.ts",
     "build": "tsc",
-    "migrate": "npx sequelize-cli db:migrate",
+    "migrate": "ts-node ./node_modules/.bin/sequelize-cli db:migrate",
     "sync": "npm run migrate && npm start"
   },
   "author": "",
