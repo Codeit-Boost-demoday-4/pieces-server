@@ -50,7 +50,7 @@ class PostService {
             text: data.tags,
           },
         });
-        await post.setTags(tags);
+        //await post.setTags(tags);
       }
 
       const postWithTags = await Post.findByPk(post.id, {
@@ -66,7 +66,7 @@ class PostService {
           title: postWithTags?.title,
           content: postWithTags?.content,
           imageUrl: postWithTags?.imageUrl,
-          tags: postWithTags?.tags?.map((tag) => tag.text) || [],
+          //tags: postWithTags?.tags?.map((tag) => tag.text) || [],
           location: postWithTags?.location,
           moment: postWithTags?.moment,
           isPublic: postWithTags?.isPublic,
@@ -153,12 +153,12 @@ class PostService {
             nickname: post.nickname,
             title: post.title,
             imageUrl: post.imageUrl,
-            tags: post.tags?.map((tag) => tag.text) || [],
+            //tags: post.tags?.map((tag) => tag.text) || [],
             location: post.location,
             moment: post.moment,
             isPublic: post.isPublic,
-            likeCount: post.likeCount,
-            commentCount: post.commentCount,
+            //likeCount: post.likeCount,
+            //commentCount: post.commentCount,
             createdAt: post.createdAt,
           })),
         },
@@ -212,7 +212,7 @@ class PostService {
             text: data.tags,
           },
         });
-        await post.setTags(tags);
+        //await post.setTags(tags);
       }
 
       const updatedPost = await Post.findByPk(post.id, {
@@ -228,7 +228,7 @@ class PostService {
           title: updatedPost?.title,
           content: updatedPost?.content,
           imageUrl: updatedPost?.imageUrl,
-          tags: updatedPost?.tags?.map((tag) => tag.text) || [],
+          //tags: updatedPost?.tags?.map((tag) => tag.text) || [],
           location: updatedPost?.location,
           moment: updatedPost?.moment,
           isPublic: updatedPost?.isPublic,
