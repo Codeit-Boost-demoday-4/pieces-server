@@ -69,7 +69,7 @@ class GroupController {
    * @swagger
    * /api/groups:
    *   get:
-   *     summary: 그룹을 조회합니다.
+   *     summary: 그룹 목록을 조회합니다.
    *     description: 공개여부에 따라 그룹을 조회합니다.
    *     tags:
    *       - Groups
@@ -116,6 +116,7 @@ async getGroups(req: Request, res: Response) {
   }
 }
 
+//그룹 상세 조회
   async getGroupById(req: Request, res: Response) {
     try {
         const { id } = req.params;

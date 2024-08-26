@@ -43,7 +43,6 @@ class Post
   public title!: string;
   public postPassword!: string;
   public imageUrl?: string;
-  public tags?: string[];
   public content!: string;
   public location?: string;
   public moment?: Date;
@@ -82,10 +81,6 @@ class Post
         },
         imageUrl: {
           type: DataTypes.STRING,
-          allowNull: true,
-        },
-        tags: {
-          type: DataTypes.ARRAY(DataTypes.STRING),
           allowNull: true,
         },
         location: {

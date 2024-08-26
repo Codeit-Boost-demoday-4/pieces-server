@@ -38,11 +38,11 @@ class Group
   public badgeCount!: number;
   public postCount!: number;
 
-  static initModel(sequelize: Sequelize) {
+static initModel(sequelize: Sequelize) {
     Group.init(
       {
         id: {
-          type: DataTypes.INTEGER.UNSIGNED, // 부호 없는 정수
+          type: DataTypes.INTEGER, // 부호 없는 정수
           autoIncrement: true, // 자동 증가
           primaryKey: true, // 기본 키
         },
