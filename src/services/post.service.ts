@@ -20,10 +20,10 @@ class PostService {
     if (data.tags && data.tags.length > 0) {
       const tags = await Tag.findAll({
         where: {
-          name: data.tags,
+          text: data.tags,
         },
       });
-      //await post.setTags(tags);
+      await post.setTags(tags);
     }
 
     // 생성된 포스트의 데이터를 가공하여 반환
@@ -39,7 +39,7 @@ class PostService {
       title: postWithTags?.title,
       content: postWithTags?.content,
       imageUrl: postWithTags?.imageUrl,
-      //tags: postWithTags?.tags.map((tag) => tag.text) || [],
+      tags: postWithTags?.tags?.map((tag) => tag.text) || [],
       location: postWithTags?.location,
       moment: postWithTags?.moment,
       isPublic: postWithTags?.isPublic,

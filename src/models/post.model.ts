@@ -3,11 +3,12 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 // 모델의 속성 인터페이스 정의
 interface PostAttributes {
   id: number;
-  userId: number;
+  nickname: number;
   groupId: number;
   title: string;
-  postPassword?: string;
+  postPassword: string;
   imageUrl?: string;
+  tags?: string[];
   content: string;
   location?: string;
   moment?: Date;
@@ -23,6 +24,7 @@ interface PostCreationAttributes
     PostAttributes,
     | "id"
     | "imageUrl"
+    | "tags"
     | "location"
     | "moment"
     | "createdAt"
@@ -36,14 +38,15 @@ class Post
   implements PostAttributes
 {
   public id!: number;
-  public userId!: number;
+  public nickname!: number;
   public groupId!: number;
   public title!: string;
-  public postPassword?: string;
-  public imageUrl!: string;
+  public postPassword!: string;
+  public imageUrl?: string;
+  public tags?: string[];
   public content!: string;
-  public location!: string;
-  public moment!: Date;
+  public location?: string;
+  public moment?: Date;
   public isPublic!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -57,7 +60,7 @@ class Post
           primaryKey: true,
           autoIncrement: true,
         },
-        userId: {
+        nickname: {
           type: DataTypes.INTEGER,
           allowNull: false,
         },
@@ -75,10 +78,14 @@ class Post
         },
         postPassword: {
           type: DataTypes.STRING,
-          allowNull: true,
+          allowNull: false,
         },
         imageUrl: {
           type: DataTypes.STRING,
+          allowNull: true,
+        },
+        tags: {
+          type: DataTypes.ARRAY(DataTypes.STRING),
           allowNull: true,
         },
         location: {
@@ -122,7 +129,7 @@ class Post
 
   // 관계 설정
   static associate(models: any) {
-    Post.belongsTo(models.User, { foreignKey: "userId", as: "user" });
+    Post.belongsTo(models.User, { foreignKey: "nickname", as: "user" });
     Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
     Post.belongsToMany(models.Tag, {

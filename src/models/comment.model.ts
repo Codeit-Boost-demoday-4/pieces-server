@@ -2,7 +2,7 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface CommentAttributes {
   id: number;
-  userId: number;
+  nickname: string;
   postId: number;
   content: string;
   createdAt: Date;
@@ -18,7 +18,7 @@ class Comment
   implements CommentAttributes
 {
   public id!: number;
-  public userId!: number;
+  public nickname!: string;
   public postId!: number;
   public content!: string;
   public readonly createdAt!: Date;
@@ -33,7 +33,7 @@ class Comment
           primaryKey: true,
           autoIncrement: true,
         },
-        userId: {
+        nickname: {
           type: DataTypes.INTEGER,
           allowNull: false,
         },
