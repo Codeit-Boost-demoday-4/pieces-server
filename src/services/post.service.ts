@@ -6,12 +6,13 @@ class PostService {
     userId: number;
     groupId: number;
     title: string;
-    imageUrl?: string;
     content: string;
+    postPassword: string;
+    imageUrl?: string;
+    tags?: string[]; // 태그 추가
     location?: string;
     moment?: Date;
     isPublic: boolean;
-    tags?: string[]; // 태그 추가
   }) {
     const post = await Post.create(data);
 

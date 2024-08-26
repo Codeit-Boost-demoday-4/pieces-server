@@ -1,4 +1,4 @@
-import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 // 모델의 속성 인터페이스 정의
 interface PostAttributes {
@@ -6,25 +6,40 @@ interface PostAttributes {
   userId: number;
   groupId: number;
   title: string;
-  imageUrl?: string; 
+  postPassword?: string;
+  imageUrl?: string;
   content: string;
-  location?: string; 
-  moment?: Date; 
+  location?: string;
+  moment?: Date;
   isPublic: boolean;
   createdAt: Date;
-  updatedAt?: Date; 
-  deletedAt?: Date; 
+  updatedAt?: Date;
+  deletedAt?: Date;
 }
 
 // 일부 필드만 필수로 지정할 수 있도록 인터페이스 확장
-interface PostCreationAttributes extends Optional<PostAttributes, 'id' | 'imageUrl' | 'location' | 'moment' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
+interface PostCreationAttributes
+  extends Optional<
+    PostAttributes,
+    | "id"
+    | "imageUrl"
+    | "location"
+    | "moment"
+    | "createdAt"
+    | "updatedAt"
+    | "deletedAt"
+  > {}
 
 // Sequelize 모델 정의
-class Post extends Model<PostAttributes, PostCreationAttributes> implements PostAttributes {
+class Post
+  extends Model<PostAttributes, PostCreationAttributes>
+  implements PostAttributes
+{
   public id!: number;
   public userId!: number;
   public groupId!: number;
   public title!: string;
+  public postPassword?: string;
   public imageUrl!: string;
   public content!: string;
   public location!: string;
@@ -54,13 +69,17 @@ class Post extends Model<PostAttributes, PostCreationAttributes> implements Post
           type: DataTypes.STRING,
           allowNull: false,
         },
-        imageUrl: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
         content: {
           type: DataTypes.TEXT,
           allowNull: false,
+        },
+        postPassword: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        imageUrl: {
+          type: DataTypes.STRING,
+          allowNull: true,
         },
         location: {
           type: DataTypes.STRING,
@@ -91,10 +110,10 @@ class Post extends Model<PostAttributes, PostCreationAttributes> implements Post
       },
       {
         sequelize,
-        modelName: 'Post',
-        tableName: 'posts',
-        charset: 'utf8',
-        collate: 'utf8_general_ci', // 한글 저장
+        modelName: "Post",
+        tableName: "posts",
+        charset: "utf8",
+        collate: "utf8_general_ci", // 한글 저장
         timestamps: true,
         underscored: true, // 필드 이름을 snake_case로 자동 변환
       }
@@ -103,11 +122,19 @@ class Post extends Model<PostAttributes, PostCreationAttributes> implements Post
 
   // 관계 설정
   static associate(models: any) {
-    Post.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-    Post.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
-    Post.hasMany(models.Comment, { foreignKey: 'postId', as: 'comments' });
-    Post.belongsToMany(models.Tag, { through: models.PostTag, foreignKey: 'postId', as: 'tags' });
-    Post.belongsToMany(models.User, { through: models.PostLike, foreignKey: 'postId', as: 'likedBy' });
+    Post.belongsTo(models.User, { foreignKey: "userId", as: "user" });
+    Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
+    Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
+    Post.belongsToMany(models.Tag, {
+      through: models.PostTag,
+      foreignKey: "postId",
+      as: "tags",
+    });
+    Post.belongsToMany(models.User, {
+      through: models.PostLike,
+      foreignKey: "postId",
+      as: "likedBy",
+    });
   }
 }
 
