@@ -1,3 +1,4 @@
+/*
 import { QueryInterface, DataTypes } from 'sequelize';
 
 module.exports = {
@@ -51,6 +52,10 @@ module.exports = {
           allowNull: false,
           defaultValue: 0,
         },  
+        test: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },   
     });
   },
 
@@ -58,3 +63,4 @@ module.exports = {
     await queryInterface.dropTable('groups');
   },
 };
+*/
