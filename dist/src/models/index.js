@@ -54,6 +54,7 @@ const loadModels = () => __awaiter(void 0, void 0, void 0, function* () {
         // models 디렉토리에서 모든 파일을 읽어옵니다.
         const modelFiles = (yield promises_1.default.readdir(path_1.default.join(__dirname)))
             .filter(file => (file.endsWith('.js') || file.endsWith('.ts')) && file !== 'index.js' && file !== 'index.ts');
+        console.log('Model files:', modelFiles); // 파일 목록 출력
         // 각 파일에 대해 모델을 로드하고 초기화합니다.
         for (const file of modelFiles) {
             try {
@@ -62,6 +63,7 @@ const loadModels = () => __awaiter(void 0, void 0, void 0, function* () {
                     model.initModel(sequelize);
                 }
                 models[model.name] = model;
+                console.log(`Loaded model ${model.name} from file ${file}`);
             }
             catch (error) {
                 console.error(`Failed to load model from file ${file}:`, error);

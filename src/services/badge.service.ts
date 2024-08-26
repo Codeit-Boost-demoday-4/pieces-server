@@ -2,8 +2,8 @@
 import Badge from '../models/badge.model';
 import GroupBadge from '../models/groupBadge.model';
 import Group from '../models/group.model';
-import Memory from '../models/post.model'; // 그룹의 추억 모델
-import { Op } from 'sequelize';
+import Post from '../models/post.model'; // 그룹의 추억 모델
+import { Op, Sequelize } from 'sequelize';
 
 class BadgeService {
   // 특정 그룹이 보유한 배지 조회
@@ -99,7 +99,7 @@ class BadgeService {
 
   // 도우미 메서드: 공감 1만 개 이상의 추억이 있는지 확인
   static async hasMemoryWithOverTenThousandLikes(groupId: number): Promise<boolean> {
-    const memory = await {Post}.findOne({
+    const post = await {Post}.findOne({
       where: {
         groupId,
         likeCount: {
@@ -107,7 +107,7 @@ class BadgeService {
         },
       },
     });
-    return memory !== null;
+    return post !== null;
   }
 }
 

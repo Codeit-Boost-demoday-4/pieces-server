@@ -15,7 +15,7 @@ class GroupBadge extends Model<GroupBadgeAttributes> implements GroupBadgeAttrib
     GroupBadge.init(
       {
         groupId: {
-          type: DataTypes.INTEGER.UNSIGNED,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           references: {
             model: Group,
