@@ -2,7 +2,7 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface TagAttributes {
   id: number;
-  text: string;
+  name: string;
 }
 
 interface TagCreationAttributes extends Optional<TagAttributes, "id"> {}
@@ -12,7 +12,7 @@ class Tag
   implements TagAttributes
 {
   public id!: number;
-  public text!: string;
+  public name!: string;
 
   static initModel(sequelize: Sequelize) {
     Tag.init(
@@ -22,7 +22,7 @@ class Tag
           primaryKey: true,
           autoIncrement: true,
         },
-        text: {
+        name: {
           type: DataTypes.STRING,
           allowNull: false,
           unique: true,
