@@ -254,6 +254,32 @@ class PostService {
       return { status: 400, response: { message: "잘못된 요청입니다" } };
     }
   }
+
+  // 게시글 삭제
+  async deletePost(postId: number, data: { postPassword: string }) {
+    try {
+      // 게시글을 ID로 찾음
+      const post = await Post.findByPk(postId);
+
+      // 게시글이 존재하지 않는 경우
+      if (!post) {
+        return { status: 404, response: { message: "존재하지 않습니다" } };
+      }
+
+      // 비밀번호 확인
+      if (post.postPassword !== data.postPassword) {
+        return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
+      }
+
+      // 게시글 삭제
+      await post.destroy();
+
+      return { status: 200, response: { message: "게시글 삭제 성공" } };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
 }
 
 export default new PostService();
