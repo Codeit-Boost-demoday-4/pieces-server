@@ -9,7 +9,7 @@ export default {
         autoIncrement: true,
       },
       nickname: {
-        type: DataTypes.STRING, // 변경된 부분: INTEGER -> STRING
+        type: DataTypes.STRING,
         allowNull: false,
       },
       postId: {

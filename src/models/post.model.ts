@@ -3,7 +3,7 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 // 모델의 속성 인터페이스 정의
 interface PostAttributes {
   id: number;
-  nickname: number;
+  nickname: string;
   groupId: number;
   title: string;
   postPassword: string;
@@ -38,7 +38,7 @@ class Post
   implements PostAttributes
 {
   public id!: number;
-  public nickname!: number;
+  public nickname!: string;
   public groupId!: number;
   public title!: string;
   public postPassword!: string;
@@ -61,7 +61,7 @@ class Post
           autoIncrement: true,
         },
         nickname: {
-          type: DataTypes.INTEGER,
+          type: DataTypes.STRING,
           allowNull: false,
         },
         groupId: {
@@ -129,18 +129,12 @@ class Post
 
   // 관계 설정
   static associate(models: any) {
-    Post.belongsTo(models.User, { foreignKey: "nickname", as: "user" });
     Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
     Post.belongsToMany(models.Tag, {
       through: models.PostTag,
       foreignKey: "postId",
       as: "tags",
-    });
-    Post.belongsToMany(models.User, {
-      through: models.PostLike,
-      foreignKey: "postId",
-      as: "likedBy",
     });
   }
 }
