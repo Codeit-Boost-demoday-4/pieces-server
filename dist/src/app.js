@@ -17,20 +17,20 @@ const app = (0, express_1.default)();
 app.use(express_1.default.json());
 // Swagger 설정 추가
 (0, swagger_1.setupSwagger)(app);
-// '/api' prefix로 라우터를 등록, group router가 /api를 거치게됨 (ex: /api/groups)
-app.use('/api', group_router_1.default);
+// '/api' prefix로 라우터를 등록, group router가 /api/groups를 거치게됨 (ex: /api/groups)
+app.use('/api/groups', group_router_1.default);
 const PORT = process.env.PORT || 3000; //웹서버 포트
 models_1.default.authenticate()
     .then(() => {
-    console.log('Connection has been established successfully.');
+    console.log('연결에 성공했습니다.');
     // 모든 모델을 동기화
     return models_1.default.sync({ alter: true }); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
 })
     .then(() => {
-    console.log('All models were synchronized successfully.');
+    console.log('모든 모델 동기화에 성공했습니다.');
 })
     .catch((error) => {
-    console.error('Unable to connect to the database:', error);
+    console.error('데이터베이스에 연결할 수 없습니다.:', error);
 });
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

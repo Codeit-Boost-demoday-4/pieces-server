@@ -1,7 +1,6 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface PostLikeAttributes {
-  userId: number;
   postId: number;
   createdAt: Date;
 }
@@ -13,18 +12,12 @@ class PostLike
   extends Model<PostLikeAttributes, PostLikeCreationAttributes>
   implements PostLikeAttributes
 {
-  public userId!: number;
   public postId!: number;
   public readonly createdAt!: Date;
 
   static initModel(sequelize: Sequelize) {
     PostLike.init(
       {
-        userId: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          references: { model: "users", key: "id" },
-        },
         postId: {
           type: DataTypes.INTEGER,
           allowNull: false,

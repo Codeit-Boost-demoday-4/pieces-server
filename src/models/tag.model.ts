@@ -2,7 +2,7 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface TagAttributes {
   id: number;
-  name: string;
+  text: string;
 }
 
 interface TagCreationAttributes extends Optional<TagAttributes, "id"> {}
@@ -12,7 +12,7 @@ class Tag
   implements TagAttributes
 {
   public id!: number;
-  public name!: string;
+  public text!: string;
 
   static initModel(sequelize: Sequelize) {
     Tag.init(
@@ -22,7 +22,7 @@ class Tag
           primaryKey: true,
           autoIncrement: true,
         },
-        name: {
+        text: {
           type: DataTypes.STRING,
           allowNull: false,
           unique: true,
@@ -38,6 +38,15 @@ class Tag
         underscored: true,
       }
     );
+  }
+
+  // 관계 설정
+  static associate(models: any) {
+    Tag.belongsToMany(models.Post, {
+      through: models.PostTag,
+      foreignKey: "tagId",
+      as: "posts",
+    });
   }
 }
 
