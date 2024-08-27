@@ -263,6 +263,38 @@ class PostService {
       return { status: 400, response: { message: "잘못된 요청입니다" } };
     }
   }
+
+  //게시글 상세 정보 조회
+  async getPostDetail(postId: number) {
+    const post = await Post.findByPk(postId);
+
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    try {
+      return {
+        status: 200,
+        response: {
+          id: post.id,
+          groupId: post.groupId,
+          nickname: post.nickname,
+          title: post.title,
+          imageUrl: post.imageUrl,
+          //tags: post.tags?.map((tag) => tag.text) || [],
+          location: post.location,
+          moment: post.moment,
+          isPublic: post.isPublic,
+          //likeCount: post.likeCount,
+          //commentCount: post.commentCount,
+          createdAt: post.createdAt,
+        },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
 }
 
 export default new PostService();
