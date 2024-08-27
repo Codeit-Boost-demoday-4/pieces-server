@@ -33,25 +33,34 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
         underscored: true,
       }
     );
+    
   }
 
-  // 고정된 배지 데이터
-  static async initializeBadges() {
-    const fixedBadges = [
-      { name: '7일 연속 추억 등록' },
-      { name: '추억 수 20개 이상 등록' },
-      { name: '그룹 생성 후 1년 달성' },
-      { name: '그룹 공간 1만 개 이상 받기' },
-      { name: '추억 공감 1만 개 이상 받기' },
-    ];
-
-    for (const badgeData of fixedBadges) {
-      await Badge.findOrCreate({
-        where: { name: badgeData.name },
-        defaults: badgeData,
-      });
-    }
+  // 관계 설정
+  static associate(models: any) {
+    Badge.belongsToMany(models.Group, {
+      through: models.GroupBadge,
+      foreignKey: "badgeId",
+      as: "groups",
+    });
+    models.Group.belongsToMany(Badge, {
+      through: models.GroupBadge,
+      foreignKey: "groupId",
+      as: "badges",
+    });
   }
+
+  
 }
 
+const addInitialBadges = async (sequelize: Sequelize) => {
+    const badges = [
+      { name: "7일 연속 추억 등록" },
+      { name: "추억 수 20개 이상 등록" },
+      { name: "그룹 생성 후 1년 달성" },
+      { name: "그룹 공간 1만 개 이상 받기" },
+      { name: "추억 공감 1만 개 이상 받기" },
+    ];
+}
 export default Badge;
+export { addInitialBadges };

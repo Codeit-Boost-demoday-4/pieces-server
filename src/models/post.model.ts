@@ -1,4 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
+import PostLike from './postLike.model'; // PostLike 모델 import
 
 // 모델의 속성 인터페이스 정의
 interface PostAttributes {
@@ -126,6 +127,7 @@ class Post
   static associate(models: any) {
     Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
+    Post.hasMany(models.PostLike, { foreignKey: 'postId' });
     Post.belongsToMany(models.Tag, {
       through: models.PostTag,
       foreignKey: "postId",
