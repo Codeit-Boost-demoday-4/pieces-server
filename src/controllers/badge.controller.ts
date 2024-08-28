@@ -5,7 +5,7 @@ import Badge from "../models/badge.model";
 
 /**
  * @swagger
- * /api/groups/{groupId}/badges:
+ * /api/badges/{groupId}:
  *   get:
  *     summary: Get badges for a specific group
  *     tags: [Badges]

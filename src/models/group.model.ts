@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 import Post from './post.model';
 import GroupBadge from './groupBadge.model';
+import BadgeService from "../services/badge.service";
 
 // 모델의 속성 인터페이스 정의
 interface GroupAttributes {
@@ -114,6 +115,8 @@ static initModel(sequelize: Sequelize) {
       Group.hasMany(models.Post, { foreignKey: "groupId", as: "posts" });
       Group.hasMany(models.GroupBadge, { foreignKey: "groupId", as: "groupBadges" });
     }
+
+
 
 // badgeCount를 계산하는 메서드
   public async calculateBadgeCount(): Promise<number> {

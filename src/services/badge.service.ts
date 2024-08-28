@@ -45,7 +45,7 @@ class BadgeService {
     const group = await Group.findByPk(groupId);
     if (!group) return false;
     
-    return group.likeCount >= 10000;
+    return group.likeCount >= 5;
   }
 
   // 추억 공감 1만 개 이상 받기

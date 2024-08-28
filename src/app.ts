@@ -25,7 +25,7 @@ setupSwagger(app);
 
 // '/api' prefix로 라우터를 등록, group router가 /api/groups를 거치게됨 (ex: /api/groups)
 app.use('/api/groups', groupRouter);  
-app.use('/api', badgeRouter);
+app.use('/api/badges', badgeRouter);
 app.use('/api/memories', postRouter);
 
 const PORT = process.env.PORT || 3000; //웹서버 포트
@@ -40,6 +40,7 @@ sequelize.authenticate()
   .then(async() => {
     console.log('모든 모델 동기화에 성공했습니다.');
 
+    /*
         // 모든 그룹에 대해 뱃지 검토 및 부여
         const badgeService = new BadgeService();
         const groups = await sequelize.models.Group.findAll(); // 모든 그룹 조회
@@ -49,6 +50,8 @@ sequelize.authenticate()
             await badgeService.awardBadges(group.id); // 각 그룹에 대해 뱃지 부여
           }
         }
+          */
+          
   })
 
   .catch((error) => {
