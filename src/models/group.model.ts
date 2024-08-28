@@ -1,4 +1,6 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
+import Post from './post.model';
+import GroupBadge from './groupBadge.model';
 
 // 모델의 속성 인터페이스 정의
 interface GroupAttributes {
@@ -42,7 +44,7 @@ static initModel(sequelize: Sequelize) {
     Group.init(
       {
         id: {
-          type: DataTypes.INTEGER, // 부호 없는 정수
+          type: DataTypes.INTEGER,
           autoIncrement: true, // 자동 증가
           primaryKey: true, // 기본 키
         },
@@ -105,6 +107,32 @@ static initModel(sequelize: Sequelize) {
         underscored: true, // **필드 이름을 snake_case로 자동 변환**
       }
     );
+  }
+
+// 관계 설정
+    static associate(models: any) {
+      Group.hasMany(models.Post, { foreignKey: "groupId", as: "posts" });
+      Group.hasMany(models.GroupBadge, { foreignKey: "groupId", as: "groupBadges" });
+    }
+
+// badgeCount를 계산하는 메서드
+  public async calculateBadgeCount(): Promise<number> {
+    const badgeCount = await GroupBadge.count({
+      where: { groupId: this.id },
+    });
+    this.badgeCount = badgeCount;
+    await this.save();  // 업데이트된 값을 저장합니다.
+    return badgeCount;
+  }
+
+// postCount를 계산하는 메서드
+  public async calculatePostCount(): Promise<number> {
+    const postCount = await Post.count({
+      where: { groupId: this.id },
+    });
+    this.postCount = postCount;
+    await this.save();  // 업데이트된 값을 저장합니다.
+    return postCount;
   }
 }
 

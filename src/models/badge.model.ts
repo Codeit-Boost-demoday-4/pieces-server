@@ -38,16 +38,7 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
 
   // 관계 설정
   static associate(models: any) {
-    Badge.belongsToMany(models.Group, {
-      through: models.GroupBadge,
-      foreignKey: "badgeId",
-      as: "groups",
-    });
-    models.Group.belongsToMany(Badge, {
-      through: models.GroupBadge,
-      foreignKey: "groupId",
-      as: "badges",
-    });
+    Badge.hasMany(models.GroupBadge, { foreignKey: 'badgeId', as: 'groupBadges' });
   }
 
   

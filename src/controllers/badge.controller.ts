@@ -1,34 +1,40 @@
 import { Request, Response } from "express";
 import BadgeService from "../services/badge.service";
+import GroupBadge from "../models/groupBadge.model";
+import Badge from "../models/badge.model";
 
 /**
  * @swagger
- * tags:
- *   name: Badges
- *   description: Badge management and updates.
- */
-
-/**
- * @swagger
- * /groups/{groupId}/badges:
- *   put:
- *     summary: Update badges for a specific group
+ * /api/groups/{groupId}/badges:
+ *   get:
+ *     summary: Get badges for a specific group
  *     tags: [Badges]
  *     parameters:
  *       - in: path
  *         name: groupId
  *         required: true
- *         description: ID of the group to update badges for
+ *         description: ID of the group to fetch badges for
  *         schema:
  *           type: integer
  *           example: 1
  *     responses:
  *       200:
- *         description: Badges updated successfully
+ *         description: Successfully fetched badges
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   name:
+ *                     type: string
  *       400:
  *         description: Invalid group ID
  *       500:
- *         description: An error occurred while updating badges
+ *         description: An error occurred while fetching badges
  */
 class BadgeController {
   private badgeService: BadgeService;
@@ -37,8 +43,8 @@ class BadgeController {
     this.badgeService = new BadgeService();
   }
 
-  // 그룹의 뱃지 업데이트
-  public async updateBadges(req: Request, res: Response): Promise<void> {
+  // 그룹의 뱃지 조회
+  public async getBadges(req: Request, res: Response): Promise<void> {
     const groupId = parseInt(req.params.groupId, 10);
 
     if (isNaN(groupId)) {
@@ -47,13 +53,22 @@ class BadgeController {
     }
 
     try {
-      // 뱃지 업데이트
-      await this.badgeService.awardBadges(groupId);
+      // 그룹에 연관된 뱃지 조회
+      const groupBadges = await GroupBadge.findAll({
+        where: { groupId },
+        include: [{ model: Badge, as: 'badge' }],
+      });
 
-      res.status(200).json({ message: "Badges updated successfully" });
+      // 뱃지 이름을 포함하여 응답
+      const badges = groupBadges.map(groupBadge => ({
+        id: groupBadge.badgeId,
+        name: groupBadge.badge?.name,
+      }));
+
+      res.status(200).json(badges);
     } catch (error) {
-      console.error("Error updating badges:", error);
-      res.status(500).json({ message: "An error occurred while updating badges" });
+      console.error("Error fetching badges:", error);
+      res.status(500).json({ message: "An error occurred while fetching badges" });
     }
   }
 }
