@@ -12,7 +12,10 @@ interface CommentAttributes {
 }
 
 interface CommentCreationAttributes
-  extends Optional<CommentAttributes, "id" | "updatedAt" | "deletedAt"> {}
+  extends Optional<
+    CommentAttributes,
+    "id" | "createdAt" | "updatedAt" | "deletedAt"
+  > {}
 
 class Comment
   extends Model<CommentAttributes, CommentCreationAttributes>
@@ -36,7 +39,7 @@ class Comment
           autoIncrement: true,
         },
         nickname: {
-          type: DataTypes.INTEGER,
+          type: DataTypes.STRING,
           allowNull: false,
         },
         postId: {
