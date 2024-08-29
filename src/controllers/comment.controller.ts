@@ -45,6 +45,19 @@ class CommentController {
       return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
+
+  // 댓글 삭제
+  async deleteComment(req: Request, res: Response) {
+    try {
+      const commentId = parseInt(req.params.commentId, 10);
+      const result = await CommentService.deleteComment(commentId, req.body);
+
+      return res.status(result.status).json(result.response);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "서버 오류입니다" });
+    }
+  }
 }
 
 export default new CommentController();

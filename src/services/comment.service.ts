@@ -132,6 +132,35 @@ class CommentService {
       return { status: 400, response: { message: "잘못된 요청입니다" } };
     }
   }
+
+  //댓글 삭제
+  async deleteComment(
+    commentId: number,
+    data: {
+      password: string;
+    }
+  ) {
+    const comment = await Comment.findByPk(commentId);
+
+    if (!comment) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    if (comment.password !== data.password) {
+      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
+    }
+
+    try {
+      await comment.destroy();
+      return {
+        status: 200,
+        response: { message: "답글 삭제 성공" },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
 }
 
 export default new CommentService();
