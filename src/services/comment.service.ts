@@ -92,6 +92,46 @@ class CommentService {
       return { status: 400, response: { message: "잘못된 요청입니다" } };
     }
   }
+
+  //댓글 수정
+  async updateComment(
+    commentId: number,
+    data: {
+      nickname: string;
+      content: string;
+      password: string;
+    }
+  ) {
+    const comment = await Comment.findByPk(commentId);
+
+    if (!comment) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    if (comment.password !== data.password) {
+      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
+    }
+
+    try {
+      await comment.update({
+        nickname: data.nickname,
+        content: data.content,
+      });
+
+      return {
+        status: 200,
+        response: {
+          id: comment.id,
+          nickname: comment.nickname,
+          content: comment.content,
+          createdAt: comment.createdAt,
+        },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
 }
 
 export default new CommentService();

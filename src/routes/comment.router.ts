@@ -5,5 +5,6 @@ const router = Router();
 
 router.post("/posts/:postId/comments", CommentController.createComment); //댓글 생성
 router.get("/posts/:postId/comments", CommentController.getComments); //댓글 생성
+router.put("/comments/:commentId", CommentController.updateComment); //댓글 수정
 
 export default router;
