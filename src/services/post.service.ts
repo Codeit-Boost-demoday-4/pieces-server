@@ -5,6 +5,7 @@ import Tag from "../models/tag.model";
 import PostTag from "../models/postTag.model";
 import Comment from "../models/comment.model";
 import Group from "../models/group.model";
+import GroupService from "./group.service";
 
 class PostService {
   // 그룹 존재 여부 및 비밀번호 확인 로직을 추출한 함수
@@ -13,12 +14,7 @@ class PostService {
     if (!group) {
       return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
     }
-    if (group.passwordHash !== groupPassword) {
-      return {
-        status: 403,
-        response: { message: "그룹 비밀번호가 틀렸습니다" },
-      };
-    }
+
     return { status: 200, response: { group } };
   }
 
@@ -48,18 +44,12 @@ class PostService {
     title: string;
     content: string;
     postPassword: string;
-    groupPassword: string;
     imageUrl?: string;
-    tags?: string[]; // 태그 추가
+    tags?: string[];
     location?: string;
     moment?: Date;
     isPublic: boolean;
   }) {
-    const groupValidation = await this.validateGroup(
-      data.groupId,
-      data.groupPassword
-    );
-    if (groupValidation.status !== 200) return groupValidation;
 
     try {
       const post = await Post.create({
@@ -88,7 +78,7 @@ class PostService {
       });
 
       return {
-        status: 200,
+        status: 201,
         response: {
           id: postWithTags?.id,
           groupId: postWithTags?.groupId,
@@ -107,7 +97,7 @@ class PostService {
       };
     } catch (error) {
       console.error(error);
-      return { status: 400, response: { message: "잘못된 요청입니다" } };
+      return { status: 400, response: { message: "잘못된 요청입니다." } };
     }
   }
 
