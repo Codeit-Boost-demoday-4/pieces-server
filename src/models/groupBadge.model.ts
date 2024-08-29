@@ -10,6 +10,7 @@ interface GroupBadgeAttributes {
 class GroupBadge extends Model<GroupBadgeAttributes> implements GroupBadgeAttributes {
   public groupId!: number;
   public badgeId!: number;
+    badge: any;
 
   static initModel(sequelize: Sequelize) {
     GroupBadge.init(
@@ -40,6 +41,14 @@ class GroupBadge extends Model<GroupBadgeAttributes> implements GroupBadgeAttrib
         underscored: true,
       }
     );
+  }
+
+  static associate(models: any) {
+    // GroupBadge는 Group과 다대일(N:1) 관계를 가집니다.
+    GroupBadge.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
+    
+    // GroupBadge는 Badge와 다대일(N:1) 관계를 가집니다.
+    GroupBadge.belongsTo(models.Badge, { foreignKey: 'badgeId', as: 'badge' });
   }
 }
 

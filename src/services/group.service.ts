@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import Group from '../models/group.model'; // Group 모델 import
 import bcrypt from 'bcryptjs';
+import BadgeService from './badge.service';
  
 class GroupService {
 
@@ -96,6 +97,13 @@ class GroupService {
     const group = await this.getGroupById(id);
     group.likeCount += 1;
     await group.save();
+
+    // 뱃지 부여 로직 실행
+    const badgeService = new BadgeService();
+    await badgeService.awardBadges(group.id);
+
+    // badgeCount 계산 및 저장
+    await group.calculateBadgeCount();    
     return group;
   }
 

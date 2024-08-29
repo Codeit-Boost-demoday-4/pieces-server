@@ -1,4 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
+import PostLike from './postLike.model'; // PostLike 모델 import
 
 // 모델의 속성 인터페이스 정의
 interface PostAttributes {
@@ -8,7 +9,6 @@ interface PostAttributes {
   title: string;
   postPassword: string;
   imageUrl?: string;
-  tags?: string[];
   content: string;
   location?: string;
   moment?: Date;
@@ -24,7 +24,6 @@ interface PostCreationAttributes
     PostAttributes,
     | "id"
     | "imageUrl"
-    | "tags"
     | "location"
     | "moment"
     | "createdAt"
@@ -66,6 +65,12 @@ class Post
         groupId: {
           type: DataTypes.INTEGER,
           allowNull: false,
+          references: { // 여기서 외래 키 참조를 명시적으로 설정
+            model: 'groups', // 참조하는 테이블 이름
+            key: 'id', // 참조하는 컬럼 이름
+          },
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
         },
         title: {
           type: DataTypes.STRING,
@@ -126,6 +131,7 @@ class Post
   static associate(models: any) {
     Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
+    Post.hasMany(models.PostLike, { foreignKey: 'postId' });
     Post.belongsToMany(models.Tag, {
       through: models.PostTag,
       foreignKey: "postId",
