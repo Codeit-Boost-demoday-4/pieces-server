@@ -79,6 +79,21 @@ class PostController {
       return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
+
+  //게시글 상세 정보 조회
+  async verifyPostPassword(req: Request, res: Response) {
+    try {
+      const postId = parseInt(req.params.postId, 10);
+      const result = await PostService.verifyPostPassword(postId, req.body);
+
+      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
+      return res.status(result.status).json(result.response);
+    } catch (error) {
+      console.error(error);
+      // 에러 발생 시, 500 내부 서버 오류를 반환
+      return res.status(500).json({ message: "서버 오류입니다" });
+    }
+  }
 }
 
 export default new PostController();

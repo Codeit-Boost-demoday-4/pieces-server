@@ -295,6 +295,29 @@ class PostService {
       return { status: 400, response: { message: "잘못된 요청입니다" } };
     }
   }
+
+  //게시글 조회 권한 확인하기
+  async verifyPostPassword(postId: number, data: { password: string }) {
+    const post = await Post.findByPk(postId);
+
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    if (post.postPassword !== data.password) {
+      return { status: 401, response: { message: "비밀번호가 틀렸습니다" } };
+    }
+
+    try {
+      return {
+        status: 200,
+        response: { message: "비밀번호가 확인되었습니다" },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
 }
 
 export default new PostService();
