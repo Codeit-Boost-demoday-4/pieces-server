@@ -6,6 +6,7 @@ import PostTag from "../models/postTag.model";
 import Comment from "../models/comment.model";
 import Group from "../models/group.model";
 import GroupService from "./group.service";
+import BadgeService from "./badge.service";
 
 class PostService {
   // 그룹 존재 여부 및 비밀번호 확인 로직을 추출한 함수
@@ -358,27 +359,23 @@ class PostService {
     }
   }
 
-  //게시글 공감하기
-  async likePost(postId: number) {
+  // 게시글에 공감하기
+  async likePost(postId: number): Promise<Post> {
+    // 게시글 조회
     const post = await Post.findByPk(postId);
+    if (!post) throw new Error("게시글을 찾을 수 없습니다.");
 
-    if (!post) {
-      return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
+    // 공감 수 증가
+    post.likeCount += 1;
+    await post.save();
 
-    try {
-      // 공감 추가
-      await PostLike.create({ postId });
+    // 뱃지 부여 로직 실행
+    const badgeService = new BadgeService();
+    await badgeService.awardBadges(post.id);
 
-      return {
-        status: 200,
-        response: { message: "게시글 공감하기 성공" },
-      };
-    } catch (error) {
-      console.error(error);
-      return { status: 400, response: { message: "잘못된 요청입니다" } };
-    }
+    return post;
   }
+
 
   //게시글 공개 여부 확인
   async checkPostIsPublic(postId: number) {
