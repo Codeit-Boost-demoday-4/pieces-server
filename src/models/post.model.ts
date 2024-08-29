@@ -18,6 +18,8 @@ interface PostAttributes {
   updatedAt?: Date;
   deletedAt?: Date;
   tags?: Tag[]; // 태그 속성 추가
+  likeCount?: number; // 추가: 좋아요 수
+  commentCount?: number; // 추가: 댓글 수
 }
 
 // 일부 필드만 필수로 지정할 수 있도록 인터페이스 확장
@@ -53,6 +55,8 @@ class Post
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
   public tags?: Tag[]; // 태그 속성 구현
+  public likeCount?: number; // 좋아요 수
+  public commentCount?: number; // 댓글 수
 
   static initModel(sequelize: Sequelize) {
     Post.init(

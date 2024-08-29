@@ -1,8 +1,9 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import Post from "../models/post.model";
 import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
 import PostTag from "../models/postTag.model";
+import Comment from "../models/comment.model";
 import Group from "../models/group.model";
 
 class PostService {
@@ -62,6 +63,9 @@ class PostService {
         }
       }
 
+      const likeCount = await PostLike.count({ where: { postId: post.id } });
+      const commentCount = await Comment.count({ where: { postId: post.id } });
+
       const postWithTags = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
       });
@@ -79,8 +83,8 @@ class PostService {
           location: postWithTags?.location,
           moment: postWithTags?.moment,
           isPublic: postWithTags?.isPublic,
-          likeCount: 0,
-          commentCount: 0,
+          likeCount,
+          commentCount,
           createdAt: postWithTags?.createdAt,
         },
       };
@@ -90,7 +94,7 @@ class PostService {
     }
   }
 
-  // 게시글 조회
+  // 게시글 목록 조회
   async getPosts(params: {
     page: number;
     pageSize: number;
@@ -129,7 +133,17 @@ class PostService {
       const { count: totalItemCount, rows: posts } = await Post.findAndCountAll(
         {
           where,
-          include: [{ model: Tag, as: "tags" }],
+          include: [
+            { model: Tag, as: "tags" },
+            {
+              model: PostLike,
+              attributes: [],
+            },
+            {
+              model: Comment,
+              attributes: [],
+            },
+          ],
           order,
           offset,
           limit,
@@ -142,9 +156,25 @@ class PostService {
             "location",
             "moment",
             "isPublic",
-            "likeCount",
-            "commentCount",
             "createdAt",
+            [
+              Sequelize.literal(`(
+                SELECT COUNT(*)
+                FROM post_likes AS PostLike
+                WHERE
+                  PostLike.postId = Post.id
+              )`),
+              "likeCount",
+            ],
+            [
+              Sequelize.literal(`(
+                SELECT COUNT(*)
+                FROM comments AS Comment
+                WHERE
+                  Comment.postId = Post.id
+              )`),
+              "commentCount",
+            ],
           ],
         }
       );
@@ -166,8 +196,8 @@ class PostService {
             location: post.location,
             moment: post.moment,
             isPublic: post.isPublic,
-            //likeCount: post.likeCount,
-            //commentCount: post.commentCount,
+            likeCount: post.getDataValue("likeCount"),
+            commentCount: post.getDataValue("commentCount"),
             createdAt: post.createdAt,
           })),
         },
@@ -231,6 +261,9 @@ class PostService {
         }
       }
 
+      const likeCount = await PostLike.count({ where: { postId: post.id } });
+      const commentCount = await Comment.count({ where: { postId: post.id } });
+
       const updatedPost = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
       });
@@ -248,8 +281,8 @@ class PostService {
           location: updatedPost?.location,
           moment: updatedPost?.moment,
           isPublic: updatedPost?.isPublic,
-          likeCount: 0,
-          commentCount: 0,
+          likeCount, // 좋아요 수 계산
+          commentCount, // 댓글 수 계산
           createdAt: updatedPost?.createdAt,
         },
       };
@@ -282,13 +315,18 @@ class PostService {
 
   //게시글 상세 정보 조회
   async getPostDetail(postId: number) {
-    const post = await Post.findByPk(postId);
+    const post = await Post.findByPk(postId, {
+      include: [{ model: Tag, as: "tags" }],
+    });
 
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
     }
 
     try {
+      const likeCount = await PostLike.count({ where: { postId: post.id } });
+      const commentCount = await Comment.count({ where: { postId: post.id } });
+
       return {
         status: 200,
         response: {
@@ -301,8 +339,8 @@ class PostService {
           location: post.location,
           moment: post.moment,
           isPublic: post.isPublic,
-          //likeCount: post.likeCount,
-          //commentCount: post.commentCount,
+          likeCount,
+          commentCount,
           createdAt: post.createdAt,
         },
       };
