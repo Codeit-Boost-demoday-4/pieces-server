@@ -329,12 +329,36 @@ class PostService {
     }
 
     try {
-      // 공감(좋아요) 추가
+      // 공감 추가
       await PostLike.create({ postId });
 
       return {
         status: 200,
         response: { message: "게시글 공감하기 성공" },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
+
+  //게시글 공개 여부 확인
+  async checkPostIsPublic(postId: number) {
+    const post = await Post.findByPk(postId, {
+      attributes: ["id", "isPublic"],
+    });
+
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    try {
+      return {
+        status: 200,
+        response: {
+          id: post.id,
+          isPublic: post.isPublic,
+        },
       };
     } catch (error) {
       console.error(error);
