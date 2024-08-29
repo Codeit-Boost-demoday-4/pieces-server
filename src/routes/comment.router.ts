@@ -3,6 +3,7 @@ import CommentController from "../controllers/comment.controller";
 
 const router = Router();
 
-router.post("/groups/:groupId/posts", CommentController.createComment); //게시글 생성
+router.post("/posts/:postId/comments", CommentController.createComment); //댓글 생성
+router.get("/posts/:postId/comments", CommentController.getComments); //댓글 생성
 
 export default router;

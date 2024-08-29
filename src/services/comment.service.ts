@@ -40,6 +40,58 @@ class CommentService {
       return { status: 400, response: { message: "잘못된 요청입니다" } };
     }
   }
+
+  //댓글 목록 조회
+  async getComments(params: {
+    page: number;
+    pageSize: number;
+    groupId?: number;
+  }) {
+    const { page, pageSize, groupId } = params;
+
+    const where: any = {};
+
+    if (groupId) {
+      where.groupId = groupId;
+    }
+
+    let order: any[] = [["createdAt", "DESC"]];
+
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+
+    try {
+      const { count: totalItemCount, rows: comments } =
+        await Comment.findAndCountAll({
+          where,
+          order,
+          offset,
+          limit,
+          attributes: ["id", "nickname", "content", "password", "createdAt"],
+        });
+
+      const totalPages = Math.ceil(totalItemCount / pageSize);
+
+      return {
+        status: 200,
+        response: {
+          currentPage: page,
+          totalPages,
+          totalItemCount,
+          data: comments.map((comment) => ({
+            id: comment.id,
+            nickname: comment.nickname,
+            content: comment.content,
+            password: comment.password,
+            createdAt: comment.createdAt,
+          })),
+        },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
 }
 
 export default new CommentService();
