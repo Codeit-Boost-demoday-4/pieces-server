@@ -3,36 +3,29 @@ import Post from "../models/post.model";
 import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
 import Group from "../models/group.model";
+import GroupService from "./group.service";
+import PostTag from "../models/postTag.model";
 
 class PostService {
-  //게시글 생성
+  // 게시글 생성
   async createPost(data: {
     nickname: string;
     groupId: number;
     title: string;
     content: string;
     postPassword: string;
-    groupPassword: string;
     imageUrl?: string;
-    tags?: string[]; // 태그 추가
+    tags?: string[];
     location?: string;
     moment?: Date;
     isPublic: boolean;
   }) {
-    const group = await Group.findByPk(data.groupId);
-
-    if (!group) {
-      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
-    }
-
-    if (group.passwordHash !== data.groupPassword) {
-      return {
-        status: 403,
-        response: { message: "그룹 비밀번호가 틀렸습니다" },
-      };
-    }
-
     try {
+      const group = await GroupService.getGroupById(data.groupId);
+      if (!group) {
+        return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
+      }
+
       const post = await Post.create({
         nickname: data.nickname,
         groupId: data.groupId,
@@ -46,12 +39,19 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({
-          where: {
-            text: data.tags,
-          },
+        const tagPromises = data.tags.map(async (tagText) => {
+          const [tag] = await Tag.findOrCreate({ where: { text: tagText } });
+          return tag;
         });
-        //await post.setTags(tags);
+
+        const tags = await Promise.all(tagPromises);
+
+        await Promise.all(tags.map(tag => {
+          return PostTag.create({
+            postId: post.id,
+            tagId: tag.id,
+          });
+        }));
       }
 
       const postWithTags = await Post.findByPk(post.id, {
@@ -59,7 +59,7 @@ class PostService {
       });
 
       return {
-        status: 200,
+        status: 201,
         response: {
           id: postWithTags?.id,
           groupId: postWithTags?.groupId,
@@ -78,7 +78,7 @@ class PostService {
       };
     } catch (error) {
       console.error(error);
-      return { status: 400, response: { message: "잘못된 요청입니다" } };
+      return { status: 400, response: { message: "잘못된 요청입니다." } };
     }
   }
 

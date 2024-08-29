@@ -1,70 +1,84 @@
 import { Request, Response } from "express";
 import PostService from "../services/post.service";
+import GroupService from "../services/group.service";
 
 class PostController {
-  // 게시글 생성
-  /**
-   * @swagger
-   * /:
-   *   post:
-   *     summary: Create a new post
-   *     tags:
-   *       - Posts
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - nickname
-   *               - groupId
-   *               - title
-   *               - postPassword
-   *               - content
-   *               - isPublic
-   *             properties:
-   *               nickname:
-   *                 type: string
-   *                 description: Nickname of the user creating the post
-   *                 example: "user123"
-   *               groupId:
-   *                 type: integer
-   *                 description: ID of the group the post belongs to
-   *                 example: 1
-   *               title:
-   *                 type: string
-   *                 description: Title of the post
-   *                 example: "My First Post"
-   *               postPassword:
-   *                 type: string
-   *                 description: Password to protect the post
-   *                 example: "1234"
-   *               imageUrl:
-   *                 type: string
-   *                 description: URL of the post image
-   *                 example: "http://example.com/image.jpg"
-   *               content:
-   *                 type: string
-   *                 description: Content of the post
-   *                 example: "This is the content of the post."
-   *               location:
-   *                 type: string
-   *                 description: Location associated with the post
-   *                 example: "Seoul, Korea"
-   *               moment:
-   *                 type: string
-   *                 format: date-time
-   *                 description: Date and time when the event in the post occurred
-   *                 example: "2024-08-27T14:00:00Z"
-   *               isPublic:
-   *                 type: boolean
-   *                 description: Whether the post is public or not
-   *                 example: true
-   *     responses:
-   *       201:
-   *         description: Successfully created a post
-   *         content:
+/**
+ * @swagger
+ * /api/groups/{groupId}/posts:
+ *   post:
+ *     summary: Create a new post
+ *     tags:
+ *       - Posts
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the group where the post will be created
+ *         example: 1
+ *     requestBody:
+ *       description: The data required to create a new post
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nickname
+ *               - title
+ *               - postPassword
+ *               - content
+ *               - isPublic
+ *             properties:
+ *               nickname:
+ *                 type: string
+ *                 description: Nickname of the user creating the post
+ *                 example: "user123"
+ *               title:
+ *                 type: string
+ *                 description: Title of the post
+ *                 example: "My First Post"
+ *               postPassword:
+ *                 type: string
+ *                 description: Password to protect the post
+ *                 example: "1234"
+ *               groupPassword:
+ *                 type: string
+ *                 description: Password for group verification
+ *                 example: "password123"
+ *               imageUrl:
+ *                 type: string
+ *                 description: URL of the image associated with the post
+ *                 example: "http://example.com/image.jpg"
+ *               content:
+ *                 type: string
+ *                 description: Content of the post
+ *                 example: "This is the content of the post."
+ *               location:
+ *                 type: string
+ *                 description: Location related to the post
+ *                 example: "Seoul, Korea"
+ *               moment:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date and time when the event in the post occurred
+ *                 example: "2024-08-27T14:00:00Z"
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: List of tags associated with the post
+ *                 example: ["tag1", "tag2"]
+ *               isPublic:
+ *                 type: boolean
+ *                 description: Indicates whether the post is public
+ *                 example: true
+ *     responses:
+ *       201:
+ *         description: Successfully created the post
+ *         content:
  *           application/json:
  *             schema:
  *               type: object
@@ -72,10 +86,54 @@ class PostController {
  *                 status:
  *                   type: string
  *                   example: "success"
- *                 postId:
+ *                 id:
  *                   type: integer
  *                   description: ID of the created post
  *                   example: 1
+ *                 groupId:
+ *                   type: integer
+ *                   description: ID of the group where the post was created
+ *                   example: 1
+ *                 nickname:
+ *                   type: string
+ *                   description: Nickname of the user who created the post
+ *                   example: "user123"
+ *                 title:
+ *                   type: string
+ *                   description: Title of the post
+ *                   example: "My First Post"
+ *                 content:
+ *                   type: string
+ *                   description: Content of the post
+ *                   example: "This is the content of the post."
+ *                 imageUrl:
+ *                   type: string
+ *                   description: URL of the image associated with the post
+ *                   example: "http://example.com/image.jpg"
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: List of tags associated with the post
+ *                   example: ["tag1", "tag2"]
+ *                 location:
+ *                   type: string
+ *                   description: Location related to the post
+ *                   example: "Seoul, Korea"
+ *                 moment:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Date and time when the event in the post occurred
+ *                   example: "2024-08-27T14:00:00Z"
+ *                 isPublic:
+ *                   type: boolean
+ *                   description: Indicates whether the post is public
+ *                   example: true
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Date and time when the post was created
+ *                   example: "2024-08-27T14:00:00Z"
  *       400:
  *         description: Invalid request
  *         content:
@@ -86,16 +144,46 @@ class PostController {
  *                 message:
  *                   type: string
  *                   example: "Bad Request"
-   */
+ *       403:
+ *         description: Forbidden. Group password is incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Group password is incorrect."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Server error."
+ */
   async createPost(req: Request, res: Response) {
+    const { groupId } = req.params;
+    const { groupPassword } = req.body;
+
     try {
-      const result = await PostService.createPost(req.body);
+      // 그룹 비밀번호 검증
+      const isValid = await GroupService.verifyGroupPassword(parseInt(groupId), groupPassword);
+      if (!isValid) {
+        return res.status(403).json({ message: "그룹 비밀번호가 틀렸습니다" });
+      }
+
+      const result = await PostService.createPost({ ...req.body, groupId: parseInt(groupId) });
       return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
+
 
   // 게시글 조회
   async getPosts(req: Request, res: Response) {

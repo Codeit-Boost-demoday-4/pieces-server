@@ -26,7 +26,7 @@ setupSwagger(app);
 // '/api' prefix로 라우터를 등록, group router가 /api/groups를 거치게됨 (ex: /api/groups)
 app.use('/api/groups', groupRouter);  
 app.use('/api/badges', badgeRouter);
-app.use('/api/memories', postRouter);
+app.use('/api', postRouter);
 
 const PORT = process.env.PORT || 3000; //웹서버 포트
 
