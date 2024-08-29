@@ -12,5 +12,6 @@ router.post(
   "/posts/:postId/verify-password",
   PostController.verifyPostPassword
 ); //게시글 상세 정보 조회
+router.post("/posts/:postId/like", PostController.likePost); // 게시글 공감하기
 
 export default router;

@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import Post from "../models/post.model";
+import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
 import Group from "../models/group.model";
 
@@ -312,6 +313,28 @@ class PostService {
       return {
         status: 200,
         response: { message: "비밀번호가 확인되었습니다" },
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
+
+  //게시글 공감하기
+  async likePost(postId: number) {
+    const post = await Post.findByPk(postId);
+
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+
+    try {
+      // 공감(좋아요) 추가
+      await PostLike.create({ postId });
+
+      return {
+        status: 200,
+        response: { message: "게시글 공감하기 성공" },
       };
     } catch (error) {
       console.error(error);
