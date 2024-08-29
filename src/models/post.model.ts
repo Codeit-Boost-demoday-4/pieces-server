@@ -17,6 +17,9 @@ interface PostAttributes {
   createdAt: Date;
   updatedAt?: Date;
   deletedAt?: Date;
+  tags?: Tag[]; // 태그 속성 추가
+  likeCount?: number; // 추가: 좋아요 수
+  commentCount?: number; // 추가: 댓글 수
 }
 
 // 일부 필드만 필수로 지정할 수 있도록 인터페이스 확장
@@ -30,6 +33,7 @@ interface PostCreationAttributes
     | "createdAt"
     | "updatedAt"
     | "deletedAt"
+    | "tags" // 태그 필드를 Optional로 확장
   > {}
 
 // Sequelize 모델 정의
@@ -51,6 +55,9 @@ class Post
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
+  public tags?: Tag[]; // 태그 속성 구현
+  public likeCount?: number; // 좋아요 수
+  public commentCount?: number; // 댓글 수
 
   static initModel(sequelize: Sequelize) {
     Post.init(
@@ -67,12 +74,12 @@ class Post
         groupId: {
           type: DataTypes.INTEGER,
           allowNull: false,
-          references: { // 여기서 외래 키 참조를 명시적으로 설정
-            model: 'groups', // 참조하는 테이블 이름
-            key: 'id', // 참조하는 컬럼 이름
+          references: {
+            model: "groups", // 참조하는 테이블 이름
+            key: "id", // 참조하는 컬럼 이름
           },
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
         },
         title: {
           type: DataTypes.STRING,
@@ -135,6 +142,12 @@ class Post
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
     Post.belongsToMany(models.Tag, { through: models.PostTag, as: 'tags', foreignKey: 'postId' });
     Post.hasMany(models.PostLike, { foreignKey: 'postId' });
+    Post.hasMany(models.PostLike, { foreignKey: "postId" });
+    Post.belongsToMany(models.Tag, {
+      through: models.PostTag,
+      foreignKey: "postId",
+      as: "tags",
+    });
   }
   }
 
