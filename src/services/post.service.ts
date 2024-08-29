@@ -1,10 +1,46 @@
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import Post from "../models/post.model";
 import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
+import PostTag from "../models/postTag.model";
+import Comment from "../models/comment.model";
 import Group from "../models/group.model";
 
 class PostService {
+  // 그룹 존재 여부 및 비밀번호 확인 로직을 추출한 함수
+  private async validateGroup(groupId: number, groupPassword: string) {
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
+    }
+    if (group.passwordHash !== groupPassword) {
+      return {
+        status: 403,
+        response: { message: "그룹 비밀번호가 틀렸습니다" },
+      };
+    }
+    return { status: 200, response: { group } };
+  }
+
+  // 게시물 존재 여부 확인 및 비밀번호 검증 로직을 추출한 함수
+  private async validatePost(postId: number, postPassword?: string) {
+    const post = await Post.findByPk(postId);
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+    if (postPassword && post.postPassword !== postPassword) {
+      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
+    }
+    return { status: 200, response: { post } };
+  }
+
+  // 좋아요 수와 댓글 수를 조회하는 함수
+  private async getPostDetails(postId: number) {
+    const likeCount = await PostLike.count({ where: { postId } });
+    const commentCount = await Comment.count({ where: { postId } });
+    return { likeCount, commentCount };
+  }
+
   //게시글 생성
   async createPost(data: {
     nickname: string;
@@ -19,18 +55,11 @@ class PostService {
     moment?: Date;
     isPublic: boolean;
   }) {
-    const group = await Group.findByPk(data.groupId);
-
-    if (!group) {
-      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
-    }
-
-    if (group.passwordHash !== data.groupPassword) {
-      return {
-        status: 403,
-        response: { message: "그룹 비밀번호가 틀렸습니다" },
-      };
-    }
+    const groupValidation = await this.validateGroup(
+      data.groupId,
+      data.groupPassword
+    );
+    if (groupValidation.status !== 200) return groupValidation;
 
     try {
       const post = await Post.create({
@@ -46,13 +75,13 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({
-          where: {
-            text: data.tags,
-          },
-        });
-        //await post.setTags(tags);
+        const tags = await Tag.findAll({ where: { text: data.tags } });
+        await PostTag.bulkCreate(
+          tags.map((tag) => ({ postId: post.id, tagId: tag.id }))
+        );
       }
+
+      const { likeCount, commentCount } = await this.getPostDetails(post.id);
 
       const postWithTags = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
@@ -67,12 +96,12 @@ class PostService {
           title: postWithTags?.title,
           content: postWithTags?.content,
           imageUrl: postWithTags?.imageUrl,
-          //tags: postWithTags?.tags?.map((tag) => tag.text) || [],
+          tags: postWithTags?.tags?.map((tag) => tag.text) || [],
           location: postWithTags?.location,
           moment: postWithTags?.moment,
           isPublic: postWithTags?.isPublic,
-          likeCount: 0,
-          commentCount: 0,
+          likeCount,
+          commentCount,
           createdAt: postWithTags?.createdAt,
         },
       };
@@ -82,7 +111,7 @@ class PostService {
     }
   }
 
-  // 게시글 조회
+  // 게시글 목록 조회
   async getPosts(params: {
     page: number;
     pageSize: number;
@@ -98,11 +127,9 @@ class PostService {
     if (isPublic !== undefined) {
       where.isPublic = isPublic;
     }
-
     if (keyword) {
       where.title = { [Op.like]: `%${keyword}%` };
     }
-
     if (groupId) {
       where.groupId = groupId;
     }
@@ -121,7 +148,17 @@ class PostService {
       const { count: totalItemCount, rows: posts } = await Post.findAndCountAll(
         {
           where,
-          include: [{ model: Tag, as: "tags" }],
+          include: [
+            { model: Tag, as: "tags" },
+            {
+              model: PostLike,
+              attributes: [],
+            },
+            {
+              model: Comment,
+              attributes: [],
+            },
+          ],
           order,
           offset,
           limit,
@@ -134,9 +171,25 @@ class PostService {
             "location",
             "moment",
             "isPublic",
-            "likeCount",
-            "commentCount",
             "createdAt",
+            [
+              Sequelize.literal(`(
+                SELECT COUNT(*)
+                FROM post_likes AS PostLike
+                WHERE
+                  PostLike.postId = Post.id
+              )`),
+              "likeCount",
+            ],
+            [
+              Sequelize.literal(`(
+                SELECT COUNT(*)
+                FROM comments AS Comment
+                WHERE
+                  Comment.postId = Post.id
+              )`),
+              "commentCount",
+            ],
           ],
         }
       );
@@ -154,12 +207,12 @@ class PostService {
             nickname: post.nickname,
             title: post.title,
             imageUrl: post.imageUrl,
-            //tags: post.tags?.map((tag) => tag.text) || [],
+            tags: post.tags?.map((tag) => tag.text) || [],
             location: post.location,
             moment: post.moment,
             isPublic: post.isPublic,
-            //likeCount: post.likeCount,
-            //commentCount: post.commentCount,
+            likeCount: post.getDataValue("likeCount"),
+            commentCount: post.getDataValue("commentCount"),
             createdAt: post.createdAt,
           })),
         },
@@ -185,14 +238,12 @@ class PostService {
       isPublic: boolean;
     }
   ) {
-    const post = await Post.findByPk(postId);
+    const postValidation = await this.validatePost(postId, data.postPassword);
+    if (postValidation.status !== 200) return postValidation;
 
+    const { post } = postValidation.response;
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
-
-    if (post.postPassword !== data.postPassword) {
-      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
     }
 
     try {
@@ -208,13 +259,14 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({
-          where: {
-            text: data.tags,
-          },
-        });
-        //await post.setTags(tags);
+        const tags = await Tag.findAll({ where: { text: data.tags } });
+        await PostTag.bulkCreate(
+          tags.map((tag) => ({ postId: post.id, tagId: tag.id })),
+          { ignoreDuplicates: true }
+        );
       }
+
+      const { likeCount, commentCount } = await this.getPostDetails(post.id);
 
       const updatedPost = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
@@ -229,12 +281,12 @@ class PostService {
           title: updatedPost?.title,
           content: updatedPost?.content,
           imageUrl: updatedPost?.imageUrl,
-          //tags: updatedPost?.tags?.map((tag) => tag.text) || [],
+          tags: updatedPost?.tags?.map((tag) => tag.text) || [],
           location: updatedPost?.location,
           moment: updatedPost?.moment,
           isPublic: updatedPost?.isPublic,
-          likeCount: 0,
-          commentCount: 0,
+          likeCount, // 좋아요 수 계산
+          commentCount, // 댓글 수 계산
           createdAt: updatedPost?.createdAt,
         },
       };
@@ -246,14 +298,12 @@ class PostService {
 
   // 게시글 삭제
   async deletePost(postId: number, data: { postPassword: string }) {
-    const post = await Post.findByPk(postId);
+    const postValidation = await this.validatePost(postId, data.postPassword);
+    if (postValidation.status !== 200) return postValidation;
 
+    const { post } = postValidation.response;
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
-
-    if (post.postPassword !== data.postPassword) {
-      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
     }
 
     try {
@@ -267,13 +317,18 @@ class PostService {
 
   //게시글 상세 정보 조회
   async getPostDetail(postId: number) {
-    const post = await Post.findByPk(postId);
+    const post = await Post.findByPk(postId, {
+      include: [{ model: Tag, as: "tags" }],
+    });
 
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
     }
 
     try {
+      const likeCount = await PostLike.count({ where: { postId: post.id } });
+      const commentCount = await Comment.count({ where: { postId: post.id } });
+
       return {
         status: 200,
         response: {
@@ -282,12 +337,12 @@ class PostService {
           nickname: post.nickname,
           title: post.title,
           imageUrl: post.imageUrl,
-          //tags: post.tags?.map((tag) => tag.text) || [],
+          tags: post.tags?.map((tag) => tag.text) || [],
           location: post.location,
           moment: post.moment,
           isPublic: post.isPublic,
-          //likeCount: post.likeCount,
-          //commentCount: post.commentCount,
+          likeCount,
+          commentCount,
           createdAt: post.createdAt,
         },
       };
@@ -298,16 +353,9 @@ class PostService {
   }
 
   //게시글 조회 권한 확인하기
-  async verifyPostPassword(postId: number, data: { password: string }) {
-    const post = await Post.findByPk(postId);
-
-    if (!post) {
-      return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
-
-    if (post.postPassword !== data.password) {
-      return { status: 401, response: { message: "비밀번호가 틀렸습니다" } };
-    }
+  async verifyPostPassword(postId: number, data: { postPassword: string }) {
+    const postValidation = await this.validatePost(postId, data.postPassword);
+    if (postValidation.status !== 200) return postValidation;
 
     try {
       return {

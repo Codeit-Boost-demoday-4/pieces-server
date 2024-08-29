@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import Post from "../models/post.model";
 import Comment from "../models/comment.model";
 
@@ -15,7 +14,10 @@ class CommentService {
     const post = await Post.findByPk(postId);
 
     if (!post) {
-      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
+      return {
+        status: 404,
+        response: { message: "게시글이 존재하지 않습니다" },
+      };
     }
 
     try {
@@ -45,14 +47,14 @@ class CommentService {
   async getComments(params: {
     page: number;
     pageSize: number;
-    groupId?: number;
+    postId?: number;
   }) {
-    const { page, pageSize, groupId } = params;
+    const { page, pageSize, postId } = params;
 
     const where: any = {};
 
-    if (groupId) {
-      where.groupId = groupId;
+    if (postId) {
+      where.postId = postId;
     }
 
     let order: any[] = [["createdAt", "DESC"]];
