@@ -40,12 +40,12 @@ class BadgeService {
     return group.createdAt <= ONE_YEAR_AGO;
   }
 
-  // 그룹 공간 1만 개 이상 받기
+  // 그룹 공감 1만 개 이상 받기
   private async checkMinLikes(groupId: number): Promise<boolean> {
     const group = await Group.findByPk(groupId);
     if (!group) return false;
     
-    return group.likeCount >= 10000;
+    return group.likeCount >= 5;
   }
 
   // 추억 공감 1만 개 이상 받기

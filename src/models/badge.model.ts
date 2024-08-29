@@ -38,29 +38,10 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
 
   // 관계 설정
   static associate(models: any) {
-    Badge.belongsToMany(models.Group, {
-      through: models.GroupBadge,
-      foreignKey: "badgeId",
-      as: "groups",
-    });
-    models.Group.belongsToMany(Badge, {
-      through: models.GroupBadge,
-      foreignKey: "groupId",
-      as: "badges",
-    });
+    Badge.hasMany(models.GroupBadge, { foreignKey: 'badgeId', as: 'groupBadges' });
   }
 
   
 }
 
-const addInitialBadges = async (sequelize: Sequelize) => {
-    const badges = [
-      { name: "7일 연속 추억 등록" },
-      { name: "추억 수 20개 이상 등록" },
-      { name: "그룹 생성 후 1년 달성" },
-      { name: "그룹 공간 1만 개 이상 받기" },
-      { name: "추억 공감 1만 개 이상 받기" },
-    ];
-}
 export default Badge;
-export { addInitialBadges };

@@ -3,6 +3,90 @@ import PostService from "../services/post.service";
 
 class PostController {
   // 게시글 생성
+  /**
+   * @swagger
+   * /:
+   *   post:
+   *     summary: Create a new post
+   *     tags:
+   *       - Posts
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - nickname
+   *               - groupId
+   *               - title
+   *               - postPassword
+   *               - content
+   *               - isPublic
+   *             properties:
+   *               nickname:
+   *                 type: string
+   *                 description: Nickname of the user creating the post
+   *                 example: "user123"
+   *               groupId:
+   *                 type: integer
+   *                 description: ID of the group the post belongs to
+   *                 example: 1
+   *               title:
+   *                 type: string
+   *                 description: Title of the post
+   *                 example: "My First Post"
+   *               postPassword:
+   *                 type: string
+   *                 description: Password to protect the post
+   *                 example: "1234"
+   *               imageUrl:
+   *                 type: string
+   *                 description: URL of the post image
+   *                 example: "http://example.com/image.jpg"
+   *               content:
+   *                 type: string
+   *                 description: Content of the post
+   *                 example: "This is the content of the post."
+   *               location:
+   *                 type: string
+   *                 description: Location associated with the post
+   *                 example: "Seoul, Korea"
+   *               moment:
+   *                 type: string
+   *                 format: date-time
+   *                 description: Date and time when the event in the post occurred
+   *                 example: "2024-08-27T14:00:00Z"
+   *               isPublic:
+   *                 type: boolean
+   *                 description: Whether the post is public or not
+   *                 example: true
+   *     responses:
+   *       201:
+   *         description: Successfully created a post
+   *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 postId:
+ *                   type: integer
+ *                   description: ID of the created post
+ *                   example: 1
+ *       400:
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bad Request"
+   */
   async createPost(req: Request, res: Response) {
     try {
       const result = await PostService.createPost(req.body);

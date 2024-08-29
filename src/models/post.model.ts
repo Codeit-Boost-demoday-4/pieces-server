@@ -9,7 +9,6 @@ interface PostAttributes {
   title: string;
   postPassword: string;
   imageUrl?: string;
-  tags?: string[];
   content: string;
   location?: string;
   moment?: Date;
@@ -25,7 +24,6 @@ interface PostCreationAttributes
     PostAttributes,
     | "id"
     | "imageUrl"
-    | "tags"
     | "location"
     | "moment"
     | "createdAt"
@@ -67,6 +65,12 @@ class Post
         groupId: {
           type: DataTypes.INTEGER,
           allowNull: false,
+          references: { // 여기서 외래 키 참조를 명시적으로 설정
+            model: 'groups', // 참조하는 테이블 이름
+            key: 'id', // 참조하는 컬럼 이름
+          },
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
         },
         title: {
           type: DataTypes.STRING,
