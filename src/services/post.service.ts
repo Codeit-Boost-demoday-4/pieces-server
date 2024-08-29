@@ -7,6 +7,40 @@ import Comment from "../models/comment.model";
 import Group from "../models/group.model";
 
 class PostService {
+  // 그룹 존재 여부 및 비밀번호 확인 로직을 추출한 함수
+  private async validateGroup(groupId: number, groupPassword: string) {
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
+    }
+    if (group.passwordHash !== groupPassword) {
+      return {
+        status: 403,
+        response: { message: "그룹 비밀번호가 틀렸습니다" },
+      };
+    }
+    return { status: 200, response: { group } };
+  }
+
+  // 게시물 존재 여부 확인 및 비밀번호 검증 로직을 추출한 함수
+  private async validatePost(postId: number, postPassword?: string) {
+    const post = await Post.findByPk(postId);
+    if (!post) {
+      return { status: 404, response: { message: "존재하지 않습니다" } };
+    }
+    if (postPassword && post.postPassword !== postPassword) {
+      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
+    }
+    return { status: 200, response: { post } };
+  }
+
+  // 좋아요 수와 댓글 수를 조회하는 함수
+  private async getPostDetails(postId: number) {
+    const likeCount = await PostLike.count({ where: { postId } });
+    const commentCount = await Comment.count({ where: { postId } });
+    return { likeCount, commentCount };
+  }
+
   //게시글 생성
   async createPost(data: {
     nickname: string;
@@ -21,18 +55,11 @@ class PostService {
     moment?: Date;
     isPublic: boolean;
   }) {
-    const group = await Group.findByPk(data.groupId);
-
-    if (!group) {
-      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
-    }
-
-    if (group.passwordHash !== data.groupPassword) {
-      return {
-        status: 403,
-        response: { message: "그룹 비밀번호가 틀렸습니다" },
-      };
-    }
+    const groupValidation = await this.validateGroup(
+      data.groupId,
+      data.groupPassword
+    );
+    if (groupValidation.status !== 200) return groupValidation;
 
     try {
       const post = await Post.create({
@@ -48,23 +75,13 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({
-          where: {
-            text: data.tags,
-          },
-        });
-
-        // 연결 테이블(PostTag)을 통해 태그 설정
-        for (const tag of tags) {
-          await PostTag.create({
-            postId: post.id,
-            tagId: tag.id,
-          });
-        }
+        const tags = await Tag.findAll({ where: { text: data.tags } });
+        await PostTag.bulkCreate(
+          tags.map((tag) => ({ postId: post.id, tagId: tag.id }))
+        );
       }
 
-      const likeCount = await PostLike.count({ where: { postId: post.id } });
-      const commentCount = await Comment.count({ where: { postId: post.id } });
+      const { likeCount, commentCount } = await this.getPostDetails(post.id);
 
       const postWithTags = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
@@ -110,11 +127,9 @@ class PostService {
     if (isPublic !== undefined) {
       where.isPublic = isPublic;
     }
-
     if (keyword) {
       where.title = { [Op.like]: `%${keyword}%` };
     }
-
     if (groupId) {
       where.groupId = groupId;
     }
@@ -223,14 +238,12 @@ class PostService {
       isPublic: boolean;
     }
   ) {
-    const post = await Post.findByPk(postId);
+    const postValidation = await this.validatePost(postId, data.postPassword);
+    if (postValidation.status !== 200) return postValidation;
 
+    const { post } = postValidation.response;
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
-
-    if (post.postPassword !== data.postPassword) {
-      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
     }
 
     try {
@@ -246,23 +259,14 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({
-          where: {
-            text: data.tags,
-          },
-        });
-
-        // 연결 테이블(PostTag)을 통해 태그 설정
-        for (const tag of tags) {
-          await PostTag.create({
-            postId: post.id,
-            tagId: tag.id,
-          });
-        }
+        const tags = await Tag.findAll({ where: { text: data.tags } });
+        await PostTag.bulkCreate(
+          tags.map((tag) => ({ postId: post.id, tagId: tag.id })),
+          { ignoreDuplicates: true }
+        );
       }
 
-      const likeCount = await PostLike.count({ where: { postId: post.id } });
-      const commentCount = await Comment.count({ where: { postId: post.id } });
+      const { likeCount, commentCount } = await this.getPostDetails(post.id);
 
       const updatedPost = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
@@ -294,14 +298,12 @@ class PostService {
 
   // 게시글 삭제
   async deletePost(postId: number, data: { postPassword: string }) {
-    const post = await Post.findByPk(postId);
+    const postValidation = await this.validatePost(postId, data.postPassword);
+    if (postValidation.status !== 200) return postValidation;
 
+    const { post } = postValidation.response;
     if (!post) {
       return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
-
-    if (post.postPassword !== data.postPassword) {
-      return { status: 403, response: { message: "비밀번호가 틀렸습니다" } };
     }
 
     try {
@@ -351,16 +353,9 @@ class PostService {
   }
 
   //게시글 조회 권한 확인하기
-  async verifyPostPassword(postId: number, data: { password: string }) {
-    const post = await Post.findByPk(postId);
-
-    if (!post) {
-      return { status: 404, response: { message: "존재하지 않습니다" } };
-    }
-
-    if (post.postPassword !== data.password) {
-      return { status: 401, response: { message: "비밀번호가 틀렸습니다" } };
-    }
+  async verifyPostPassword(postId: number, data: { postPassword: string }) {
+    const postValidation = await this.validatePost(postId, data.postPassword);
+    if (postValidation.status !== 200) return postValidation;
 
     try {
       return {
