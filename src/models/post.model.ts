@@ -1,6 +1,8 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 import PostLike from './postLike.model'; // PostLike 모델 import
 import Tag from "./tag.model";
+import GroupBadge from "./groupBadge.model";
+import Group from "./group.model";
 
 // 모델의 속성 인터페이스 정의
 interface PostAttributes {
@@ -56,8 +58,8 @@ class Post
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
   public tags?: Tag[]; // 태그 속성 구현
-  public likeCount?: number; // 좋아요 수
-  public commentCount?: number; // 댓글 수
+  public likeCount!: number; // 좋아요 수
+  public commentCount!: number; // 댓글 수
 
   static initModel(sequelize: Sequelize) {
     Post.init(
@@ -123,6 +125,11 @@ class Post
           type: DataTypes.DATE,
           allowNull: true,
         },
+        likeCount: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0,
+        },
       },
       {
         sequelize,
@@ -142,14 +149,9 @@ class Post
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
     Post.belongsToMany(models.Tag, { through: models.PostTag, as: 'tags', foreignKey: 'postId' });
     Post.hasMany(models.PostLike, { foreignKey: 'postId' });
-    Post.hasMany(models.PostLike, { foreignKey: "postId" });
-    Post.belongsToMany(models.Tag, {
-      through: models.PostTag,
-      foreignKey: "postId",
-      as: "tags",
-    });
   }
-  }
+
+}
 
 
 export default Post;

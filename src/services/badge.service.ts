@@ -49,15 +49,11 @@ class BadgeService {
   }
 
   // 추억 공감 1만 개 이상 받기
-  private async checkMinPostLikes(groupId: number): Promise<boolean> {
-    const postLikesCount = await PostLike.count({
-      include: [{
-        model: Post,
-        where: { groupId },
-      }],
-    });
+  private async checkMinPostLikes(postId: number): Promise<boolean> {
+    const post = await Post.findByPk(postId);
+    if (!post) return false;
 
-    return postLikesCount >= 10000;
+    return post.likeCount >= 10; // 예시로 1만 개로 설정
   }
 
   // 그룹에 조건에 맞는 뱃지 추가
