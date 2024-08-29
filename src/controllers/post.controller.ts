@@ -93,7 +93,7 @@ class PostController {
       return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
-      return res.status(400).json({ message: "잘못된 요청입니다" });
+      return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
 
@@ -117,10 +117,10 @@ class PostController {
           : undefined,
       };
       const result = await PostService.getPosts(params);
-      return res.status(200).json(result);
+      return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
-      return res.status(400).json({ message: "잘못된 요청입니다" });
+      return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
 
@@ -132,7 +132,7 @@ class PostController {
       return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
-      return res.status(400).json({ message: "잘못된 요청입니다" });
+      return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
 
@@ -141,10 +141,65 @@ class PostController {
     try {
       const postId = parseInt(req.params.postId, 10);
       const result = await PostService.deletePost(postId, req.body);
-      return res.status(200).json(result);
+
+      return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
-      return res.status(400).json({ message: "잘못된 요청입니다" });
+      return res.status(500).json({ message: "서버 오류입니다" });
+    }
+  }
+
+  //게시글 상세 정보 조회
+  async getPostDetail(req: Request, res: Response) {
+    try {
+      const postId = parseInt(req.params.postId, 10);
+      const result = await PostService.getPostDetail(postId);
+
+      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
+      return res.status(result.status).json(result.response);
+    } catch (error) {
+      console.error(error);
+      // 에러 발생 시, 500 내부 서버 오류를 반환
+      return res.status(500).json({ message: "서버 오류입니다" });
+    }
+  }
+
+  //게시글 상세 정보 조회
+  async verifyPostPassword(req: Request, res: Response) {
+    try {
+      const postId = parseInt(req.params.postId, 10);
+      const result = await PostService.verifyPostPassword(postId, req.body);
+
+      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
+      return res.status(result.status).json(result.response);
+    } catch (error) {
+      console.error(error);
+      // 에러 발생 시, 500 내부 서버 오류를 반환
+      return res.status(500).json({ message: "서버 오류입니다" });
+    }
+  }
+
+  // 게시글 공감하기
+  async likePost(req: Request, res: Response) {
+    try {
+      const postId = parseInt(req.params.postId, 10);
+      const result = await PostService.likePost(postId);
+      return res.status(result.status).json(result.response);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "서버 오류입니다" });
+    }
+  }
+
+  // 게시글 공개 여부 조회
+  async checkPostIsPublic(req: Request, res: Response) {
+    try {
+      const postId = parseInt(req.params.postId, 10);
+      const result = await PostService.checkPostIsPublic(postId);
+      return res.status(result.status).json(result.response);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
 }
