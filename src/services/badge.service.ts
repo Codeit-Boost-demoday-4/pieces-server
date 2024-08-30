@@ -45,7 +45,7 @@ class BadgeService {
     const group = await Group.findByPk(groupId);
     if (!group) return false;
     
-    return group.likeCount >= 5;
+    return group.likeCount >= 10;
   }
 
   // 추억 공감 1만 개 이상 받기
@@ -53,17 +53,17 @@ class BadgeService {
     const post = await Post.findByPk(postId);
     if (!post) return false;
 
-    return post.likeCount >= 10; // 예시로 1만 개로 설정
+    return post.likeCount >= 10; // 예시로 10 개로 설정
   }
 
   // 그룹에 조건에 맞는 뱃지 추가
-  public async awardBadges(groupId: number): Promise<void> {
+  public async awardBadges(groupId: number, postId?: number): Promise<void> {
     // Badge 테이블에서 모든 뱃지 가져오기
     const badges = await Badge.findAll();
     const badgeMap = new Map(badges.map(badge => [badge.name, badge.id]));
 
     // 조건과 대응되는 뱃지 이름과 메소드
-    const badgeConditions: { badgeName: string, checkMethod: (groupId: number) => Promise<boolean> }[] = [
+    const badgeConditions: { badgeName: string, checkMethod: (id: number) => Promise<boolean> }[] = [
       { badgeName: '7일 연속 추억 등록', checkMethod: this.checkConsecutivePosts.bind(this) },
       { badgeName: '추억 수 20개 이상 등록', checkMethod: this.checkMinPosts.bind(this) },
       { badgeName: '그룹 생성 후 1년 달성', checkMethod: this.checkGroupAge.bind(this) },
@@ -74,25 +74,38 @@ class BadgeService {
     // 현재 그룹에 부여된 뱃지 목록 가져오기
     const groupBadges = await GroupBadge.findAll({ where: { groupId } });
     const currentBadgeIds = new Set(groupBadges.map(gb => gb.badgeId));
+    console.log(`현재 그룹에 부여된 뱃지 목록: ${Array.from(currentBadgeIds)}`);
+
+    const badgesToProcess = new Set<number>();
 
     for (const condition of badgeConditions) {
       const { badgeName, checkMethod } = condition;
+      
       
       // 뱃지 이름으로 ID 가져오기
       const badgeId = badgeMap.get(badgeName);
       if (!badgeId) continue;
 
-      const shouldAwardBadge = await checkMethod(groupId);
-      
+      // 그룹에 대한 조건과 게시글에 대한 조건을 분리하여 확인
+      const shouldAwardBadge = postId
+        ? await checkMethod(postId)
+        : await checkMethod(groupId);
+
+        console.log(`뱃지 조건(${badgeName}): ${shouldAwardBadge}`);
+
       if (shouldAwardBadge && !currentBadgeIds.has(badgeId)) {
-        // 뱃지 부여
+        // 뱃지 추가
         await GroupBadge.create({ groupId, badgeId });
+        console.log('뱃지 추가 완료')
       } else if (!shouldAwardBadge && currentBadgeIds.has(badgeId)) {
         // 뱃지 제거
         await GroupBadge.destroy({ where: { groupId, badgeId } });
+        console.log('뱃지 제거 완료')
+
       }
     }
   }
+
 }
 
 export default BadgeService;

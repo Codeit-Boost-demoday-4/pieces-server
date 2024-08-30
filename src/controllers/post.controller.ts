@@ -869,7 +869,7 @@ class PostController {
  */
 async likePost(req: Request, res: Response) {
   try {
-    const postId = parseInt(req.params.postId, 10);
+    const postId = parseInt(req.params.postId);
     
     // 게시글 공감하기 서비스 호출
     const post = await PostService.likePost(postId);

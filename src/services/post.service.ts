@@ -364,15 +364,22 @@ class PostService {
     // 게시글 조회
     const post = await Post.findByPk(postId);
     if (!post) throw new Error("게시글을 찾을 수 없습니다.");
-
+  
     // 공감 수 증가
     post.likeCount += 1;
     await post.save();
-
-    // 뱃지 부여 로직 실행
+  
+    // BadgeService 인스턴스 생성 및 뱃지 부여 로직 실행
     const badgeService = new BadgeService();
-    await badgeService.awardBadges(post.id);
-
+    if (post.groupId) {
+      await badgeService.awardBadges(post.groupId, postId);
+      
+      // 그룹의 뱃지 수 업데이트
+      const group = await Group.findByPk(post.groupId);
+      if (group) {
+        await group.calculateBadgeCount();
+      }
+    }
     return post;
   }
 
