@@ -65,56 +65,127 @@ class GroupController {
     }
   }
 
-/**
+  /**
    * @swagger
    * /api/groups:
    *   get:
-   *     summary: 그룹 목록을 조회합니다.
-   *     description: 공개여부에 따라 그룹을 조회합니다.
-   *     tags:
-   *       - Groups
+   *     summary: 그룹 목록 조회
+   *     description: 페이지네이션, 검색, 정렬 기능을 사용하여 그룹 목록을 조회합니다.
+   *     tags: [Groups]
    *     parameters:
-   *       - in: query
-   *         name: isPublic
+   *       - name: page
+   *         in: query
+   *         description: 현재 페이지 번호
+   *         required: true
+   *         schema:
+   *           type: integer
+   *           example: 1
+   *       - name: pageSize
+   *         in: query
+   *         description: 페이지당 아이템 수
+   *         required: true
+   *         schema:
+   *           type: integer
+   *           example: 10
+   *       - name: sortBy
+   *         in: query
+   *         description: 정렬 기준 (latest, mostPosted, mostLiked, mostBadge)
+   *         required: true
+   *         schema:
+   *           type: string
+   *           enum: [latest, mostPosted, mostLiked, mostBadge]
+   *           example: latest
+   *       - name: keyword
+   *         in: query
+   *         description: 검색어
+   *         schema:
+   *           type: string
+   *       - name: isPublic
+   *         in: query
+   *         description: 공개 여부 (true 또는 false)
+   *         required: true
    *         schema:
    *           type: boolean
-   *           default: true
-   *         description: '그룹의 공개 여부 (true: 공개, false: 비공개)'
+   *           example: true
    *     responses:
    *       200:
-   *         description: A list of groups
+   *         description: 그룹 목록 조회 성공
    *         content:
    *           application/json:
    *             schema:
-   *               type: array
-   *               items:
-   *                 type: object
-   *                 properties:
-   *                   id:
-   *                     type: integer
-   *                   name:
-   *                     type: string
-   *                   imageUrl:
-   *                     type: string
-   *                   introduction:
-   *                     type: string
-   *                   isPublic:
-   *                     type: boolean
-   *                   createdAt:
-   *                     type: string
-   *                     format: date-time
+   *               type: object
+   *               properties:
+   *                 currentPage:
+   *                   type: integer
+   *                   example: 1
+   *                 totalPages:
+   *                   type: integer
+   *                   example: 5
+   *                 totalItemCount:
+   *                   type: integer
+   *                   example: 50
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: integer
+   *                         example: 1
+   *                       name:
+   *                         type: string
+   *                         example: "그룹 이름"
+   *                       imageUrl:
+   *                         type: string
+   *                         example: "http://example.com/image.jpg"
+   *                       isPublic:
+   *                         type: boolean
+   *                         example: true
+   *                       likeCount:
+   *                         type: integer
+   *                         example: 0
+   *                       badgeCount:
+   *                         type: integer
+   *                         example: 0
+   *                       postCount:
+   *                         type: integer
+   *                         example: 0
+   *                       createdAt:
+   *                         type: string
+   *                         format: date-time
+   *                         example: "2024-02-22T07:47:49.803Z"
+   *                       introduction:
+   *                         type: string
+   *                         example: "그룹 소개"
+   *       400:
+   *         description: 잘못된 요청
    *       500:
-   *         description: Server error
+   *         description: 서버 오류
    */
-async getGroups(req: Request, res: Response) {
-  try {
-    const isPublic = req.query.isPublic === 'false' ? false : true; // 기본값은 true
-    const groups = await GroupService.getGroups(isPublic);
-    res.status(200).json(groups);
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+  async getGroups(req: Request, res: Response) {
+    try {
+      const { page, pageSize, sortBy, keyword, isPublic } = req.query;
+
+      // 쿼리 파라미터 검증 및 변환
+      const pageNumber = parseInt(page as string, 10);
+      const pageSizeNumber = parseInt(pageSize as string, 10);
+      const sortByString = sortBy as string;
+      const keywordString = keyword as string;
+      const isPublicBoolean = isPublic === 'true';
+
+      const groups = await GroupService.getGroups({
+        page: pageNumber,
+        pageSize: pageSizeNumber,
+        sortBy: sortByString as 'latest' | 'mostPosted' | 'mostLiked' | 'mostBadge',
+        keyword: keywordString || '',
+        isPublic: isPublicBoolean,
+      });
+
+      res.status(200).json(groups);
+    } catch (error) {
+      res.status(500).json({ error: '서버 오류' });
+    }
   }
-}
 
 //그룹 상세 조회
   async getGroupById(req: Request, res: Response) {
