@@ -39,9 +39,11 @@ sequelize.authenticate()
     return sequelize.sync(/*{ alter: true }*/); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
   })
   .then(async() => {
-    console.log('모든 모델 동기화에 성공했습니다.');
 
     await Badge.seedBadges(); // 시드 데이터 추가
+
+    console.log('모든 모델 동기화에 성공했습니다.');
+
     /*
         // 모든 그룹에 대해 뱃지 검토 및 부여
         const badgeService = new BadgeService();

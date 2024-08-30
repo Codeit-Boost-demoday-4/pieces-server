@@ -7,7 +7,7 @@ import PostLike from "../models/postLike.model";
 
 class BadgeService {
   // 7일 연속 추억 등록
-  private async checkConsecutivePosts(groupId: number): Promise<boolean> {
+  public async checkConsecutivePosts(groupId: number): Promise<boolean> {
     const SEVEN_DAYS_AGO = new Date();
     SEVEN_DAYS_AGO.setDate(SEVEN_DAYS_AGO.getDate() - 7);
 
@@ -24,13 +24,13 @@ class BadgeService {
   }
 
   // 추억 수 20개 이상 등록
-  private async checkMinPosts(groupId: number): Promise<boolean> {
+  public async checkMinPosts(groupId: number): Promise<boolean> {
     const postCount = await Post.count({ where: { groupId } });
     return postCount >= 20;
   }
 
   // 그룹 생성 후 1년 달성
-  private async checkGroupAge(groupId: number): Promise<boolean> {
+  public async checkGroupAge(groupId: number): Promise<boolean> {
     const group = await Group.findByPk(groupId);
     if (!group) return false;
 
@@ -41,7 +41,7 @@ class BadgeService {
   }
 
   // 그룹 공감 1만 개 이상 받기
-  private async checkMinLikes(groupId: number): Promise<boolean> {
+  public async checkMinLikes(groupId: number): Promise<boolean> {
     const group = await Group.findByPk(groupId);
     if (!group) return false;
     
@@ -49,13 +49,26 @@ class BadgeService {
   }
 
   // 추억 공감 1만 개 이상 받기
-  private async checkMinPostLikes(postId: number): Promise<boolean> {
+  public async checkMinPostLikes(postId: number): Promise<boolean> {
     const post = await Post.findByPk(postId);
     if (!post) return false;
 
-    return post.likeCount >= 10; // 예시로 10 개로 설정
+    return post.likeCount >= 15; // 예시로 10 개로 설정
   }
 
+  //뱃지 부여
+  public async awardBadge(groupId: number, badgeId: number): Promise<void> {
+    // 현재 그룹에 부여된 뱃지 목록 가져오기
+    const groupBadge = await GroupBadge.findOne({ where: { groupId, badgeId } });
+
+    if (!groupBadge) {
+      // 그룹에 뱃지가 없으면 새로 추가
+      await GroupBadge.create({ groupId, badgeId });
+      console.log(`뱃지 ID ${badgeId} 추가 완료`);
+    }
+  }
+}
+  /*
   // 그룹에 조건에 맞는 뱃지 추가
   public async awardBadges(groupId: number, postId?: number): Promise<void> {
     // Badge 테이블에서 모든 뱃지 가져오기
@@ -105,7 +118,6 @@ class BadgeService {
       }
     }
   }
-
-}
+*/
 
 export default BadgeService;

@@ -9,6 +9,12 @@ import GroupService from "./group.service";
 import BadgeService from "./badge.service";
 
 class PostService {
+
+  private badgeService: BadgeService;
+
+  constructor() {
+    this.badgeService = new BadgeService();
+  }
   // 그룹 존재 여부 및 비밀번호 확인 로직을 추출한 함수
   private async validateGroup(groupId: number, groupPassword: string) {
     const group = await Group.findByPk(groupId);
@@ -77,6 +83,26 @@ class PostService {
       const postWithTags = await Post.findByPk(post.id, {
         include: [{ model: Tag, as: "tags" }],
       });
+
+    // 7일 연속 추억 등록 조건 검사 및 뱃지 부여
+    const consecutivePostsMet = await this.badgeService.checkConsecutivePosts(data.groupId);
+    if (consecutivePostsMet) {
+      await this.badgeService.awardBadge(data.groupId, 1);
+    }
+
+    // 추억 수 20개 이상 등록 조건 검사 및 뱃지 부여
+    const minPostsMet = await this.badgeService.checkMinPosts(data.groupId);
+    if (minPostsMet) {
+      await this.badgeService.awardBadge(data.groupId, 2);
+
+    // 그룹의 뱃지 수 업데이트
+      const group = await Group.findByPk(data.groupId);
+      if (group) {
+        await group.calculateBadgeCount();
+      }
+    }
+
+
 
       return {
         status: 201,
@@ -369,10 +395,15 @@ class PostService {
     post.likeCount += 1;
     await post.save();
   
-    // BadgeService 인스턴스 생성 및 뱃지 부여 로직 실행
-    const badgeService = new BadgeService();
-    if (post.groupId) {
-      await badgeService.awardBadges(post.groupId, postId);
+    //뱃지 부여 로직 실행
+    const badgeId = 5;
+
+    // 공감 개수 조건을 검사
+    const minPostLikesMet = await this.badgeService.checkMinPostLikes(postId);
+
+    // 조건이 만족되면 뱃지를 부여
+    if (minPostLikesMet && post.groupId) {
+      await this.badgeService.awardBadge(post.groupId, badgeId);
       
       // 그룹의 뱃지 수 업데이트
       const group = await Group.findByPk(post.groupId);

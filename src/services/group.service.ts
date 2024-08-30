@@ -5,12 +5,26 @@ import BadgeService from './badge.service';
  
 class GroupService {
 
+  private badgeService: BadgeService;
+
+  constructor() {
+    this.badgeService = new BadgeService();
+  }
+
 // ID로 특정 그룹 가져오기
   async getGroupById(id: number) {
     const group = await Group.findByPk(id);
     if (!group) {
       throw new Error('그룹을 찾을 수 없습니다.');
     }
+
+      // 그룹 생성 후 1년 달성 조건 검사
+  const groupAgeMet = await this.badgeService.checkGroupAge(id);
+  if (groupAgeMet) {
+    await this.badgeService.awardBadge(id, 3);
+    // badgeCount 계산 및 저장
+    await group.calculateBadgeCount();    
+  }
     return group;
   }
 
@@ -98,9 +112,15 @@ class GroupService {
     group.likeCount += 1;
     await group.save();
 
-    // 뱃지 부여 로직 실행
-    const badgeService = new BadgeService();
-    await badgeService.awardBadges(group.id);
+  // 공감 개수 조건을 검사
+  const minLikesMet = await this.badgeService.checkMinLikes(id);
+
+  const badgeId = 4;
+
+  // 조건이 만족되면 뱃지를 부여
+  if (minLikesMet) {
+    await this.badgeService.awardBadge(id, badgeId);
+  }
 
     // badgeCount 계산 및 저장
     await group.calculateBadgeCount();    
