@@ -7,6 +7,7 @@ import postRouter from './routes/post.router';
 import { setupSwagger } from '../swagger'; // Swagger 설정 임포트
 import BadgeService from './services/badge.service'; // BadgeService 임포트
 import Group from './models/group.model'; // Group 모델 임포트
+import Badge from './models/badge.model';
 
 
 dotenv.config(); // .env 파일의 환경 변수를 불러옵니다
@@ -35,9 +36,12 @@ sequelize.authenticate()
     console.log('연결에 성공했습니다.');
 
     // 모든 모델을 동기화
-    return sequelize.sync({ alter: true }); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
+    return sequelize.sync(/*{ alter: true }*/); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
   })
   .then(async() => {
+
+    await Badge.seedBadges(); // 시드 데이터 추가
+
     console.log('모든 모델 동기화에 성공했습니다.');
 
     /*
