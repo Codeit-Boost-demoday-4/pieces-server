@@ -1,8 +1,15 @@
 import { Op } from 'sequelize';
-import Group from '../models/group.model'; // Group 모델 import
+import Group from '../models/group.model';
 import bcrypt from 'bcryptjs';
 import BadgeService from './badge.service';
  
+interface GetGroupsParams {
+  page: number;
+  pageSize: number;
+  sortBy: 'latest' | 'mostPosted' | 'mostLiked' | 'mostBadge';
+  keyword: string;
+  isPublic: boolean;
+}
 class GroupService {
 
   private badgeService: BadgeService;
@@ -40,7 +47,69 @@ class GroupService {
     const group = await Group.create(data);
     return group;
   }
-
+  
+  async getGroups(params: GetGroupsParams) {
+    const { page, pageSize, sortBy, keyword, isPublic } = params;
+    const offset = (page - 1) * pageSize;
+  
+    // 기본 정렬 기준
+    let order: any;
+    switch (sortBy) {
+      case 'latest':
+        order = [['createdAt', 'DESC']];
+        break;
+      case 'mostPosted':
+        order = [['postCount', 'DESC']];
+        break;
+      case 'mostLiked':
+        order = [['likeCount', 'DESC']];
+        break;
+      case 'mostBadge':
+        order = [['badgeCount', 'DESC']];
+        break;
+      default:
+        order = [['createdAt', 'DESC']];
+    }
+  
+    // 검색 조건
+    const searchCondition = keyword
+      ? {
+          [Op.or]: [
+            { name: { [Op.like]: `%${keyword}%` } },
+          ],
+        }
+      : {};
+  
+    // 쿼리 생성
+    const query: any = {
+      where: {
+        ...searchCondition,
+        isPublic,
+      },
+      order,
+      limit: pageSize,
+      offset,
+    };
+  
+    // 총 아이템 수 조회
+    const totalItemCount = await Group.count({ where: { ...searchCondition, isPublic } });
+  
+    // 그룹 목록 조회
+    const groups = await Group.findAll({
+      ...query,
+      attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
+    });
+  
+    const totalPages = Math.ceil(totalItemCount / pageSize);
+  
+    return {
+      currentPage: page,
+      totalPages,
+      totalItemCount,
+      data: groups,
+    };
+  }
+  /*
 // 공개,비공개 그룹 따로 조회
   async getGroups(isPublic?: boolean) {
     let query: any = {
@@ -54,6 +123,7 @@ class GroupService {
 
     return groups;
   }
+    */
 
 
   /* 모든 그룹 조회
@@ -156,6 +226,7 @@ class GroupService {
   }
 
 }
+
 
 
 export default new GroupService();

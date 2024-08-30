@@ -79,6 +79,10 @@ class Comment
       }
     );
   }
+
+  static associate(models: any) {
+    Comment.belongsTo(models.Post, { as: 'post', foreignKey: 'postId' });
+  }
 }
 
 export default Comment;
