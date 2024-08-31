@@ -2,7 +2,7 @@ import Post from "../models/post.model";
 import Comment from "../models/comment.model";
 
 class CommentService {
-  //댓글 등록
+  // 댓글 등록
   async createComment(
     postId: number,
     data: {
@@ -28,6 +28,9 @@ class CommentService {
         password: data.password,
       });
 
+      // 댓글 추가 후 댓글 수 업데이트
+      await this.updateCommentCount(postId);
+
       return {
         status: 200,
         response: {
@@ -43,7 +46,7 @@ class CommentService {
     }
   }
 
-  //댓글 목록 조회
+  // 댓글 목록 조회
   async getComments(params: {
     page: number;
     pageSize: number;
@@ -95,7 +98,7 @@ class CommentService {
     }
   }
 
-  //댓글 수정
+  // 댓글 수정
   async updateComment(
     commentId: number,
     data: {
@@ -135,7 +138,7 @@ class CommentService {
     }
   }
 
-  //댓글 삭제
+  // 댓글 삭제
   async deleteComment(
     commentId: number,
     data: {
@@ -153,7 +156,12 @@ class CommentService {
     }
 
     try {
+      const postId = comment.postId; // 댓글이 삭제될 때 게시글 ID 추출
       await comment.destroy();
+      
+      // 댓글 삭제 후 댓글 수 업데이트
+      await this.updateCommentCount(postId);
+
       return {
         status: 200,
         response: { message: "답글 삭제 성공" },
@@ -161,6 +169,15 @@ class CommentService {
     } catch (error) {
       console.error(error);
       return { status: 400, response: { message: "잘못된 요청입니다" } };
+    }
+  }
+
+  // 댓글 수 업데이트
+  private async updateCommentCount(postId: number): Promise<void> {
+    const post = await Post.findByPk(postId);
+    if (post) {
+      const commentCount = await Comment.count({ where: { postId } });
+      await post.update({ commentCount });
     }
   }
 }

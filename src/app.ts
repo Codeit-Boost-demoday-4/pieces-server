@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import groupRouter from './routes/group.router';
 import badgeRouter from './routes/badge.router';
 import postRouter from './routes/post.router';
+import commentRouter from './routes/comment.router';
 import { setupSwagger } from '../swagger'; // Swagger 설정 임포트
 import BadgeService from './services/badge.service'; // BadgeService 임포트
 import Group from './models/group.model'; // Group 모델 임포트
@@ -27,7 +28,7 @@ setupSwagger(app);
 // '/api' prefix로 라우터를 등록, group router가 /api/groups를 거치게됨 (ex: /api/groups)
 app.use('/api/groups', groupRouter);  
 app.use('/api/badges', badgeRouter);
-app.use('/api', postRouter);
+app.use('/api', postRouter, commentRouter);
 
 const PORT = process.env.PORT || 3000; //웹서버 포트
 

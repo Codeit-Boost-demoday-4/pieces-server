@@ -5,7 +5,7 @@ const router = Router();
 
 router.post('/', GroupController.createGroup); //그룹 생성
 router.get('/', GroupController.getGroups); //그룹 조회
-router.get('/search', GroupController.getGroupsByName);// 그룹명으로 그룹 검색
+//router.get('/search', GroupController.getGroupsByName);// 그룹명으로 그룹 검색
 router.get('/:id', GroupController.getGroupById);//그룹 조회
 router.put('/:id', GroupController.updateGroup); //그룹 수정
 router.delete('/:id', GroupController.deleteGroup); //그룹 삭제

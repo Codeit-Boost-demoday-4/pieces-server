@@ -3,6 +3,7 @@ import PostService from "../services/post.service";
 import GroupService from "../services/group.service";
 
 class PostController {
+  
 /**
  * @swagger
  * /api/groups/{groupId}/posts:
@@ -184,129 +185,204 @@ class PostController {
     }
   }
 
-/**
+  /**
+   * @swagger
+   * /api/groups/{groupId}/posts:
+   *   get:
+   *     summary: 게시글 목록 조회
+   *     tags:
+   *       - Posts
+   *     description: 게시글 목록을 페이지네이션 및 정렬 기준으로 조회합니다.
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *         description: 조회할 페이지 번호
+   *       - in: query
+   *         name: pageSize
+   *         schema:
+   *           type: integer
+   *           default: 10
+   *         description: 페이지당 게시글 수
+   *       - in: query
+   *         name: sortBy
+   *         schema:
+   *           type: string
+   *           enum: [latest, mostCommented, mostLiked]
+   *           default: latest
+   *         description: 정렬 기준
+   *       - in: query
+   *         name: keyword
+   *         schema:
+   *           type: string
+   *         description: 검색 키워드
+   *       - in: query
+   *         name: isPublic
+   *         schema:
+   *           type: boolean
+   *         description: 공개 여부
+   *       - in: query
+   *         name: groupId
+   *         schema:
+   *           type: integer
+   *         description: 그룹 ID
+   *     responses:
+   *       200:
+   *         description: 게시글 목록이 성공적으로 반환됨
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 currentPage:
+   *                   type: integer
+   *                 totalPages:
+   *                   type: integer
+   *                 totalItemCount:
+   *                   type: integer
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: integer
+   *                       nickname:
+   *                         type: string
+   *                       title:
+   *                         type: string
+   *                       imageUrl:
+   *                         type: string
+   *                       tags:
+   *                         type: array
+   *                         items:
+   *                           type: string
+   *                       location:
+   *                         type: string
+   *                       moment:
+   *                         type: string
+   *                         format: date-time
+   *                       isPublic:
+   *                         type: boolean
+   *                       likeCount:
+   *                         type: integer
+   *                       commentCount:
+   *                         type: integer
+   *                       createdAt:
+   *                         type: string
+   *                         format: date-time
+   *       500:
+   *         description: 서버 오류
+   */
+async getPosts(req: Request, res: Response) {
+  try {
+    // 요청 쿼리에서 파라미터 추출
+    const { page = 1, pageSize = 10, sortBy = 'latest', keyword, isPublic, groupId } = req.query;
+
+    // 파라미터 변환
+    const pageNumber = parseInt(page as string, 10);
+    const pageSizeNumber = parseInt(pageSize as string, 10);
+    const sortByString = sortBy as 'latest' | 'mostCommented' | 'mostLiked';
+    const isPublicBoolean = isPublic === 'true' ? true : isPublic === 'false' ? false : undefined;
+    const groupIdNumber = groupId ? parseInt(groupId as string, 10) : undefined;
+
+    // 서비스 호출
+    const result = await PostService.getPosts({
+      page: pageNumber,
+      pageSize: pageSizeNumber,
+      sortBy: sortByString,
+      keyword: keyword as string,
+      isPublic: isPublicBoolean,
+      groupId: groupIdNumber
+    });
+
+    // 응답 반환
+    res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
+  /**
  * @swagger
- * /api/groups/{groupId}/posts:
+ * /api/posts/{postId}:
  *   get:
- *     summary: 게시글 목록 조회
+ *     summary: 게시글 상세 정보 조회
  *     tags:
  *       - Posts
  *     parameters:
- *       - in: query
- *         name: page
+ *       - in: path
+ *         name: postId
  *         required: true
  *         schema:
  *           type: integer
- *           example: 1
- *         description: The page number to retrieve
- *       - in: query
- *         name: pageSize
- *         required: true
- *         schema:
- *           type: integer
- *           example: 10
- *         description: Number of posts per page
- *       - in: query
- *         name: sortBy
- *         required: true
- *         schema:
- *           type: string
- *           enum: [latest, mostCommented, mostLiked]
- *           example: latest
- *         description: The criteria to sort the posts
- *       - in: query
- *         name: keyword
- *         schema:
- *           type: string
- *           example: "example"
- *         description: Keyword to search in the post title
- *       - in: query
- *         name: isPublic
- *         schema:
- *           type: boolean
- *           example: true
- *         description: Whether to filter posts based on their public status
- *       - in: query
- *         name: groupId
- *         schema:
- *           type: integer
- *           example: 1
- *         description: ID of the group to filter posts
+ *         description: ID of the post to retrieve
+ *         example: 1
  *     responses:
  *       200:
- *         description: Successfully retrieved the list of posts
+ *         description: Successfully retrieved the post details
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 currentPage:
+ *                 id:
  *                   type: integer
- *                   description: Current page number
+ *                   description: ID of the post
  *                   example: 1
- *                 totalPages:
- *                   type: integer
- *                   description: Total number of pages
- *                   example: 10
- *                 totalItemCount:
- *                   type: integer
- *                   description: Total number of posts
- *                   example: 100
- *                 data:
+ *                 nickname:
+ *                   type: string
+ *                   description: Nickname of the user who created the post
+ *                   example: "user123"
+ *                 title:
+ *                   type: string
+ *                   description: Title of the post
+ *                   example: "Sample Post Title"
+ *                 content:
+ *                   type: string
+ *                   description: Content of the post
+ *                   example: "This is the content of the post."
+ *                 imageUrl:
+ *                   type: string
+ *                   description: URL of the image associated with the post
+ *                   example: "http://example.com/image.jpg"
+ *                 tags:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: ID of the post
- *                         example: 1
- *                       nickname:
- *                         type: string
- *                         description: Nickname of the user who created the post
- *                         example: "user123"
- *                       title:
- *                         type: string
- *                         description: Title of the post
- *                         example: "My First Post"
- *                       imageUrl:
- *                         type: string
- *                         description: URL of the image associated with the post
- *                         example: "http://example.com/image.jpg"
- *                       tags:
- *                         type: array
- *                         items:
- *                           type: string
- *                         description: List of tags associated with the post
- *                         example: ["tag1", "tag2"]
- *                       location:
- *                         type: string
- *                         description: Location related to the post
- *                         example: "Seoul, Korea"
- *                       moment:
- *                         type: string
- *                         format: date-time
- *                         description: Date and time when the event in the post occurred
- *                         example: "2024-08-27T14:00:00Z"
- *                       isPublic:
- *                         type: boolean
- *                         description: Indicates whether the post is public
- *                         example: true
- *                       likeCount:
- *                         type: integer
- *                         description: Number of likes on the post
- *                         example: 10
- *                       commentCount:
- *                         type: integer
- *                         description: Number of comments on the post
- *                         example: 5
- *                       createdAt:
- *                         type: string
- *                         format: date-time
- *                         description: Date and time when the post was created
- *                         example: "2024-08-27T14:00:00Z"
- *       400:
- *         description: Invalid query parameters
+ *                     type: string
+ *                   description: Tags associated with the post
+ *                   example: ["tag1", "tag2"]
+ *                 location:
+ *                   type: string
+ *                   description: Location related to the post
+ *                   example: "Seoul, Korea"
+ *                 moment:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Date and time when the event in the post occurred
+ *                   example: "2024-08-27T14:00:00Z"
+ *                 isPublic:
+ *                   type: boolean
+ *                   description: Indicates whether the post is public
+ *                   example: true
+ *                 likeCount:
+ *                   type: integer
+ *                   description: Number of likes on the post
+ *                   example: 10
+ *                 commentCount:
+ *                   type: integer
+ *                   description: Number of comments on the post
+ *                   example: 5
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Date and time when the post was created
+ *                   example: "2024-08-27T14:00:00Z"
+ *       404:
+ *         description: Post not found
  *         content:
  *           application/json:
  *             schema:
@@ -314,7 +390,7 @@ class PostController {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Invalid query parameters"
+ *                   example: "Post not found"
  *       500:
  *         description: Internal server error
  *         content:
@@ -326,28 +402,16 @@ class PostController {
  *                   type: string
  *                   example: "Server error"
  */
-  async getPosts(req: Request, res: Response) {
+  async getPostDetail(req: Request, res: Response) {
     try {
-      const sortBy = (req.query.sortBy as string) || "latest";
+      const postId = parseInt(req.params.postId, 10);
+      const result = await PostService.getPostDetail(postId);
 
-      if (!["latest", "mostCommented", "mostLiked"].includes(sortBy)) {
-        return res.status(400).json({ message: "잘못된 정렬 기준입니다" });
-      }
-
-      const params = {
-        page: parseInt(req.query.page as string, 10) || 1,
-        pageSize: parseInt(req.query.pageSize as string, 10) || 10,
-        sortBy: sortBy as "latest" | "mostCommented" | "mostLiked",
-        keyword: req.query.keyword as string,
-        isPublic: req.query.isPublic === "true",
-        groupId: req.query.groupId
-          ? parseInt(req.query.groupId as string, 10)
-          : undefined,
-      };
-      const result = await PostService.getPosts(params);
+      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
       return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
+      // 에러 발생 시, 500 내부 서버 오류를 반환
       return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
@@ -622,115 +686,7 @@ class PostController {
     }
   }
 
-  /**
- * @swagger
- * /api/posts/{postId}:
- *   get:
- *     summary: 게시글 상세 정보 조회
- *     tags:
- *       - Posts
- *     parameters:
- *       - in: path
- *         name: postId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the post to retrieve
- *         example: 1
- *     responses:
- *       200:
- *         description: Successfully retrieved the post details
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                   description: ID of the post
- *                   example: 1
- *                 nickname:
- *                   type: string
- *                   description: Nickname of the user who created the post
- *                   example: "user123"
- *                 title:
- *                   type: string
- *                   description: Title of the post
- *                   example: "Sample Post Title"
- *                 content:
- *                   type: string
- *                   description: Content of the post
- *                   example: "This is the content of the post."
- *                 imageUrl:
- *                   type: string
- *                   description: URL of the image associated with the post
- *                   example: "http://example.com/image.jpg"
- *                 tags:
- *                   type: array
- *                   items:
- *                     type: string
- *                   description: Tags associated with the post
- *                   example: ["tag1", "tag2"]
- *                 location:
- *                   type: string
- *                   description: Location related to the post
- *                   example: "Seoul, Korea"
- *                 moment:
- *                   type: string
- *                   format: date-time
- *                   description: Date and time when the event in the post occurred
- *                   example: "2024-08-27T14:00:00Z"
- *                 isPublic:
- *                   type: boolean
- *                   description: Indicates whether the post is public
- *                   example: true
- *                 likeCount:
- *                   type: integer
- *                   description: Number of likes on the post
- *                   example: 10
- *                 commentCount:
- *                   type: integer
- *                   description: Number of comments on the post
- *                   example: 5
- *                 createdAt:
- *                   type: string
- *                   format: date-time
- *                   description: Date and time when the post was created
- *                   example: "2024-08-27T14:00:00Z"
- *       404:
- *         description: Post not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Post not found"
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Server error"
- */
-  async getPostDetail(req: Request, res: Response) {
-    try {
-      const postId = parseInt(req.params.postId, 10);
-      const result = await PostService.getPostDetail(postId);
 
-      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
-      return res.status(result.status).json(result.response);
-    } catch (error) {
-      console.error(error);
-      // 에러 발생 시, 500 내부 서버 오류를 반환
-      return res.status(500).json({ message: "서버 오류입니다" });
-    }
-  }
 /**
  * @swagger
  * /api/posts/{postId}/verify-password:
