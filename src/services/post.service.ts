@@ -1,4 +1,4 @@
-import { Op, col, literal } from "sequelize";
+import { Op } from "sequelize";
 import Post from "../models/post.model";
 import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
@@ -81,7 +81,14 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({ where: { text: data.tags } });
+        // 기존 태그 찾기 또는 새로 생성
+        const tags = await Promise.all(
+          data.tags.map(async (text) => {
+            const [tag] = await Tag.findOrCreate({ where: { text } });
+            return tag;
+          })
+        );
+        // PostTag 관계 생성
         await PostTag.bulkCreate(
           tags.map((tag) => ({ postId: post.id, tagId: tag.id }))
         );
@@ -265,7 +272,15 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({ where: { text: data.tags } });
+        const tags = await Promise.all(
+          data.tags.map(async (text) => {
+            const [tag] = await Tag.findOrCreate({ where: { text } });
+            return tag;
+          })
+        );
+  
+        // 기존 태그 관계 제거 후 새로운 태그 관계 생성
+        await PostTag.destroy({ where: { postId: post.id } });
         await PostTag.bulkCreate(
           tags.map((tag) => ({ postId: post.id, tagId: tag.id })),
           { ignoreDuplicates: true }
@@ -313,7 +328,20 @@ class PostService {
     }
 
     try {
+
+      // 연결된 댓글 삭제
+      await Comment.destroy({ where: { postId } });
+      // 삭제될 게시글과 관련된 태그 가져오기
+      const postTags = await PostTag.findAll({ where: { postId } });
+      const tagIds = postTags.map((postTag) => postTag.tagId);
       await post.destroy();
+      // 각 태그가 다른 게시글에서도 사용되는지 확인 후, 사용되지 않는 태그 삭제
+      for (const tagId of tagIds) {
+        const postTagCount = await PostTag.count({ where: { tagId } });
+        if (postTagCount === 0) {
+         await Tag.destroy({ where: { id: tagId } });
+      }
+    }
       return { status: 200, response: { message: "게시글 삭제 성공" } };
     } catch (error) {
       console.error(error);

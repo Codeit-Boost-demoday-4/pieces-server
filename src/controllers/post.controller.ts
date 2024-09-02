@@ -185,101 +185,118 @@ class PostController {
     }
   }
 
-  /**
-   * @swagger
-   * /api/groups/{groupId}/posts:
-   *   get:
-   *     summary: 게시글 목록 조회
-   *     tags:
-   *       - Posts
-   *     description: 게시글 목록을 페이지네이션 및 정렬 기준으로 조회합니다.
-   *     parameters:
-   *       - in: query
-   *         name: page
-   *         schema:
-   *           type: integer
-   *           default: 1
-   *         description: 조회할 페이지 번호
-   *       - in: query
-   *         name: pageSize
-   *         schema:
-   *           type: integer
-   *           default: 10
-   *         description: 페이지당 게시글 수
-   *       - in: query
-   *         name: sortBy
-   *         schema:
-   *           type: string
-   *           enum: [latest, mostCommented, mostLiked]
-   *           default: latest
-   *         description: 정렬 기준
-   *       - in: query
-   *         name: keyword
-   *         schema:
-   *           type: string
-   *         description: 검색 키워드
-   *       - in: query
-   *         name: isPublic
-   *         schema:
-   *           type: boolean
-   *         description: 공개 여부
-   *       - in: query
-   *         name: groupId
-   *         schema:
-   *           type: integer
-   *         description: 그룹 ID
-   *     responses:
-   *       200:
-   *         description: 게시글 목록이 성공적으로 반환됨
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 currentPage:
-   *                   type: integer
-   *                 totalPages:
-   *                   type: integer
-   *                 totalItemCount:
-   *                   type: integer
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       id:
-   *                         type: integer
-   *                       nickname:
-   *                         type: string
-   *                       title:
-   *                         type: string
-   *                       imageUrl:
-   *                         type: string
-   *                       tags:
-   *                         type: array
-   *                         items:
-   *                           type: string
-   *                       location:
-   *                         type: string
-   *                       moment:
-   *                         type: string
-   *                         format: date-time
-   *                       isPublic:
-   *                         type: boolean
-   *                       likeCount:
-   *                         type: integer
-   *                       commentCount:
-   *                         type: integer
-   *                       createdAt:
-   *                         type: string
-   *                         format: date-time
-   *       500:
-   *         description: 서버 오류
-   */
+/**
+ * @swagger
+ * /api/groups/{groupId}/posts:
+ *   get:
+ *     summary: 게시글 목록 조회
+ *     tags:
+ *       - Posts
+ *     description: 게시글 목록을 페이지네이션 및 정렬 기준으로 조회합니다.
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: 조회할 페이지 번호
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: 페이지당 게시글 수
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [latest, mostCommented, mostLiked]
+ *           default: latest
+ *         description: 정렬 기준
+ *       - in: query
+ *         name: keyword
+ *         schema:
+ *           type: string
+ *         description: 검색 키워드
+ *       - in: query
+ *         name: isPublic
+ *         schema:
+ *           type: boolean
+ *         description: 공개 여부
+ *       - in: query
+ *         name: groupId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: 그룹 ID (필수)
+ *     responses:
+ *       200:
+ *         description: 게시글 목록이 성공적으로 반환됨
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 currentPage:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 totalItemCount:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       nickname:
+ *                         type: string
+ *                       title:
+ *                         type: string
+ *                       imageUrl:
+ *                         type: string
+ *                       tags:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       location:
+ *                         type: string
+ *                       moment:
+ *                         type: string
+ *                         format: date-time
+ *                       isPublic:
+ *                         type: boolean
+ *                       likeCount:
+ *                         type: integer
+ *                       commentCount:
+ *                         type: integer
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: 그룹 아이디가 제공되지 않음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "그룹 아이디를 입력하세요."
+ *       500:
+ *         description: 서버 오류
+ */
+
 async getPosts(req: Request, res: Response) {
   try {
     // 요청 쿼리에서 파라미터 추출
     const { page = 1, pageSize = 10, sortBy = 'latest', keyword, isPublic, groupId } = req.query;
+
+    // groupId가 제공되지 않았을 경우 에러 반환
+    if (!groupId) {
+      return res.status(400).json({ message: '그룹 아이디를 입력하세요.' });
+    }
 
     // 파라미터 변환
     const pageNumber = parseInt(page as string, 10);
