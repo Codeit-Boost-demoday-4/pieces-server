@@ -203,6 +203,7 @@ class GroupService {
     return { id: group.id, isPublic: group.isPublic };
   }
 
+  /*
 // 그룹명으로 그룹 검색
   async getGroupsByName(isPublic: boolean, name?: string) {
     let query: any = {
@@ -224,7 +225,7 @@ class GroupService {
   
     return groups;
   }
-
+*/
 }
 
 

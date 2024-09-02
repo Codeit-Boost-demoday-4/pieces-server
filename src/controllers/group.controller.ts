@@ -458,7 +458,7 @@ class GroupController {
     }
   }
 
-  /**
+  /*
    * @swagger
    * /api/groups/search:
    *   get:
@@ -508,7 +508,7 @@ class GroupController {
    *                     type: integer
    *       500:
    *         description: 서버 오류
-   */
+   *
   async getGroupsByName(req: Request, res: Response) {
     try {
       // 쿼리 매개변수에서 isPublic과 name을 가져옵니다.
@@ -531,6 +531,6 @@ class GroupController {
       res.status(500).json({ error: '서버 오류가 발생했습니다.' });
     }
   }
-
+*/
 }
 export default new GroupController();

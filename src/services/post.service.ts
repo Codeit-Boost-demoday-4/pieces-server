@@ -1,4 +1,4 @@
-import { Op, Sequelize } from "sequelize";
+import { Op } from "sequelize";
 import Post from "../models/post.model";
 import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
@@ -7,6 +7,15 @@ import Comment from "../models/comment.model";
 import Group from "../models/group.model";
 import GroupService from "./group.service";
 import BadgeService from "./badge.service";
+
+interface GetPostsParams {
+  page: number;
+  pageSize: number;
+  sortBy: "latest" | "mostCommented" | "mostLiked";
+  keyword?: string;
+  isPublic?: boolean;
+  groupId?: number;
+}
 
 class PostService {
 
@@ -72,7 +81,14 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({ where: { text: data.tags } });
+        // 기존 태그 찾기 또는 새로 생성
+        const tags = await Promise.all(
+          data.tags.map(async (text) => {
+            const [tag] = await Tag.findOrCreate({ where: { text } });
+            return tag;
+          })
+        );
+        // PostTag 관계 생성
         await PostTag.bulkCreate(
           tags.map((tag) => ({ postId: post.id, tagId: tag.id }))
         );
@@ -129,116 +145,96 @@ class PostService {
   }
 
   // 게시글 목록 조회
-  async getPosts(params: {
-    page: number;
-    pageSize: number;
-    sortBy: "latest" | "mostCommented" | "mostLiked";
-    keyword?: string;
-    isPublic?: boolean;
-    groupId?: number;
-  }) {
+  async getPosts(params: GetPostsParams) {
     const { page, pageSize, sortBy, keyword, isPublic, groupId } = params;
-
-    const where: any = {};
-
-    if (isPublic !== undefined) {
-      where.isPublic = isPublic;
-    }
-    if (keyword) {
-      where.title = { [Op.like]: `%${keyword}%` };
-    }
-    if (groupId) {
-      where.groupId = groupId;
-    }
-
-    let order: any[] = [["createdAt", "DESC"]];
-    if (sortBy === "mostCommented") {
-      order = [["commentCount", "DESC"]];
-    } else if (sortBy === "mostLiked") {
-      order = [["likeCount", "DESC"]];
-    }
-
     const offset = (page - 1) * pageSize;
-    const limit = pageSize;
 
-    try {
-      const { count: totalItemCount, rows: posts } = await Post.findAndCountAll(
-        {
-          where,
-          include: [
-            { model: Tag, as: "tags" },
-            {
-              model: PostLike,
-              attributes: [],
-            },
-            {
-              model: Comment,
-              attributes: [],
-            },
-          ],
-          order,
-          offset,
-          limit,
-          attributes: [
-            "id",
-            "nickname",
-            "title",
-            "imageUrl",
-            "tags",
-            "location",
-            "moment",
-            "isPublic",
-            "createdAt",
-            [
-              Sequelize.literal(`(
-                SELECT COUNT(*)
-                FROM post_likes AS PostLike
-                WHERE
-                  PostLike.postId = Post.id
-              )`),
-              "likeCount",
-            ],
-            [
-              Sequelize.literal(`(
-                SELECT COUNT(*)
-                FROM comments AS Comment
-                WHERE
-                  Comment.postId = Post.id
-              )`),
-              "commentCount",
-            ],
+    // 정렬 기준 설정
+    let order: Array<[string, 'ASC' | 'DESC']> = [];
+    switch (sortBy) {
+      case 'latest':
+        order = [['createdAt', 'DESC']];
+        break;
+      case 'mostCommented':
+        order = [['commentCount', 'DESC']];
+        break;
+      case 'mostLiked':
+        order = [['likeCount', 'DESC']];
+        break;
+      default:
+        order = [['createdAt', 'DESC']];
+    }
+
+    // 검색 조건 설정
+    const searchCondition = keyword
+      ? {
+          [Op.or]: [
+            { title: { [Op.like]: `%${keyword}%` } },
+            { tags: { [Op.like]: `%${keyword}%` } },
           ],
         }
-      );
+      : {};
 
-      const totalPages = Math.ceil(totalItemCount / pageSize);
+    // 쿼리 생성
+    const query = {
+      where: {
+        ...searchCondition,
+        isPublic,
+        groupId,
+      },
+      order,
+      limit: pageSize,
+      offset,
+      attributes: [
+        'id',
+        'nickname',
+        'title',
+        'imageUrl',
+        'location',
+        'moment',
+        'isPublic',
+        'likeCount',
+        'commentCount',
+        'createdAt',
+      ],
+      include: [{ model: Tag, as: 'tags', attributes: ['text'] }],
+    };
 
-      return {
-        status: 200,
-        response: {
-          currentPage: page,
-          totalPages,
-          totalItemCount,
-          data: posts.map((post) => ({
-            id: post.id,
-            nickname: post.nickname,
-            title: post.title,
-            imageUrl: post.imageUrl,
-            tags: post.tags?.map((tag) => tag.text) || [],
-            location: post.location,
-            moment: post.moment,
-            isPublic: post.isPublic,
-            likeCount: post.getDataValue("likeCount"),
-            commentCount: post.getDataValue("commentCount"),
-            createdAt: post.createdAt,
-          })),
-        },
-      };
-    } catch (error) {
-      console.error(error);
-      return { status: 400, response: { message: "잘못된 요청입니다" } };
-    }
+    // 총 게시글 수 조회
+    const totalItemCount = await Post.count({
+      where: {
+        ...searchCondition,
+        isPublic,
+        groupId,
+      },
+    });
+
+    // 게시글 목록 조회
+    const posts = await Post.findAll(query);
+
+    // 총 페이지 수 계산
+    const totalPages = Math.ceil(totalItemCount / pageSize);
+
+    return {
+      currentPage: page,
+      totalPages,
+      totalItemCount,
+      data: posts.map(post => ({
+        id: post.id,
+        nickname: post.nickname,
+        title: post.title,
+        imageUrl: post.imageUrl,
+        tags: post.tags ? post.tags.map(tag => tag.text) : [],  // `tags`가 undefined일 경우 빈 배열로 처리
+        location: post.location,
+        moment: post.moment,
+        isPublic: post.isPublic,
+        likeCount: post.likeCount,
+        commentCount: post.commentCount,
+        createdAt: post.createdAt,
+      })),
+    };
   }
+
 
   // 게시글 수정
   async updatePost(
@@ -276,7 +272,15 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        const tags = await Tag.findAll({ where: { text: data.tags } });
+        const tags = await Promise.all(
+          data.tags.map(async (text) => {
+            const [tag] = await Tag.findOrCreate({ where: { text } });
+            return tag;
+          })
+        );
+  
+        // 기존 태그 관계 제거 후 새로운 태그 관계 생성
+        await PostTag.destroy({ where: { postId: post.id } });
         await PostTag.bulkCreate(
           tags.map((tag) => ({ postId: post.id, tagId: tag.id })),
           { ignoreDuplicates: true }
@@ -324,7 +328,20 @@ class PostService {
     }
 
     try {
+
+      // 연결된 댓글 삭제
+      await Comment.destroy({ where: { postId } });
+      // 삭제될 게시글과 관련된 태그 가져오기
+      const postTags = await PostTag.findAll({ where: { postId } });
+      const tagIds = postTags.map((postTag) => postTag.tagId);
       await post.destroy();
+      // 각 태그가 다른 게시글에서도 사용되는지 확인 후, 사용되지 않는 태그 삭제
+      for (const tagId of tagIds) {
+        const postTagCount = await PostTag.count({ where: { tagId } });
+        if (postTagCount === 0) {
+         await Tag.destroy({ where: { id: tagId } });
+      }
+    }
       return { status: 200, response: { message: "게시글 삭제 성공" } };
     } catch (error) {
       console.error(error);
