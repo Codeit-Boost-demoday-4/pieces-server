@@ -26,8 +26,8 @@ app.use(express.json());
 // CORS 설정
 app.use(cors({
   origin: [
-    'http://pieces.react.codeit.s3-website.ap-northeast-2.amazonaws.com/',
-    'http://localhost:3000/',
+    'http://pieces.react.codeit.s3-website.ap-northeast-2.amazonaws.com',
+    'http://localhost:3000',
   ],// 프론트엔드의 도메인
     
   methods: 'GET,POST,PUT,DELETE', // 허용할 HTTP 메서드
