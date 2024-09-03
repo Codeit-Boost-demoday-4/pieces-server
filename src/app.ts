@@ -9,6 +9,7 @@ import { setupSwagger } from '../swagger'; // Swagger 설정 임포트
 import BadgeService from './services/badge.service'; // BadgeService 임포트
 import Group from './models/group.model'; // Group 모델 임포트
 import Badge from './models/badge.model';
+import cors from 'cors';
 
 
 dotenv.config(); // .env 파일의 환경 변수를 불러옵니다
@@ -21,6 +22,12 @@ console.log('DB_HOST:', process.env.DB_HOST);
 const app = express();
 
 app.use(express.json());
+
+// CORS 설정
+app.use(cors({
+  origin: 'http://pieces.react.codeit.s3-website.ap-northeast-2.amazonaws.com/', // 프론트엔드의 도메인
+  methods: 'GET,POST,PUT,DELETE', // 허용할 HTTP 메서드
+}));
 
 // Swagger 설정 추가
 setupSwagger(app);
