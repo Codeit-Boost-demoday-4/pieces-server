@@ -5,7 +5,6 @@ import Tag from "../models/tag.model";
 import PostTag from "../models/postTag.model";
 import Comment from "../models/comment.model";
 import Group from "../models/group.model";
-import GroupService from "./group.service";
 import BadgeService from "./badge.service";
 
 interface GetPostsParams {
@@ -23,15 +22,6 @@ class PostService {
 
   constructor() {
     this.badgeService = new BadgeService();
-  }
-  // 그룹 존재 여부 및 비밀번호 확인 로직을 추출한 함수
-  private async validateGroup(groupId: number, groupPassword: string) {
-    const group = await Group.findByPk(groupId);
-    if (!group) {
-      return { status: 404, response: { message: "그룹이 존재하지 않습니다" } };
-    }
-
-    return { status: 200, response: { group } };
   }
 
   // 게시물 존재 여부 확인 및 비밀번호 검증 로직을 추출한 함수
@@ -81,14 +71,14 @@ class PostService {
       });
 
       if (data.tags && data.tags.length > 0) {
-        // 기존 태그 찾기 또는 새로 생성
+        //기존 태그 찾기 또는 새로 생성
         const tags = await Promise.all(
           data.tags.map(async (text) => {
             const [tag] = await Tag.findOrCreate({ where: { text } });
             return tag;
           })
         );
-        // PostTag 관계 생성
+        //PostTag 관계 생성
         await PostTag.bulkCreate(
           tags.map((tag) => ({ postId: post.id, tagId: tag.id }))
         );
@@ -100,25 +90,25 @@ class PostService {
         include: [{ model: Tag, as: "tags" }],
       });
 
-    // 7일 연속 추억 등록 조건 검사 및 뱃지 부여
+    //7일 연속 추억 등록 조건 검사 및 뱃지 부여
     const consecutivePostsMet = await this.badgeService.checkConsecutivePosts(data.groupId);
     if (consecutivePostsMet) {
       await this.badgeService.awardBadge(data.groupId, 1);
     }
 
-    // 추억 수 20개 이상 등록 조건 검사 및 뱃지 부여
+    //추억 수 20개 이상 등록 조건 검사 및 뱃지 부여
     const minPostsMet = await this.badgeService.checkMinPosts(data.groupId);
     if (minPostsMet) {
       await this.badgeService.awardBadge(data.groupId, 2);
 
-    // 그룹의 뱃지 수 업데이트
+      //그룹의 뱃지 수 업데이트
       const group = await Group.findByPk(data.groupId);
       if (group) {
         await group.calculateBadgeCount();
       }
     }
 
-      // 그룹의 게시글 수 업데이트
+      //그룹의 게시글 수 업데이트
       const group = await Group.findByPk(data.groupId);
       if (group) {
         await group.calculatePostCount();
@@ -148,12 +138,12 @@ class PostService {
     }
   }
 
-  // 게시글 목록 조회
+  //게시글 목록 조회
   async getPosts(params: GetPostsParams) {
     const { page, pageSize, sortBy, keyword, isPublic, groupId } = params;
     const offset = (page - 1) * pageSize;
 
-    // 정렬 기준 설정
+    //정렬 기준 설정
     let order: Array<[string, 'ASC' | 'DESC']> = [];
     switch (sortBy) {
       case 'latest':
@@ -169,7 +159,7 @@ class PostService {
         order = [['createdAt', 'DESC']];
     }
 
-    // 검색 조건 설정
+    //검색 조건 설정
     const searchCondition = keyword
       ? {
           [Op.or]: [
@@ -179,7 +169,7 @@ class PostService {
         }
       : {};
 
-    // 쿼리 생성
+    //쿼리 생성
     const query = {
       where: {
         ...searchCondition,
@@ -204,7 +194,7 @@ class PostService {
       include: [{ model: Tag, as: 'tags', attributes: ['text'] }],
     };
 
-    // 총 게시글 수 조회
+    //총 게시글 수 조회
     const totalItemCount = await Post.count({
       where: {
         ...searchCondition,
@@ -213,10 +203,10 @@ class PostService {
       },
     });
 
-    // 게시글 목록 조회
+    //게시글 목록 조회
     const posts = await Post.findAll(query);
 
-    // 총 페이지 수 계산
+    //총 페이지 수 계산
     const totalPages = Math.ceil(totalItemCount / pageSize);
 
     return {
@@ -240,7 +230,7 @@ class PostService {
   }
 
 
-  // 게시글 수정
+  //게시글 수정
   async updatePost(
     postId: number,
     data: {
@@ -283,7 +273,7 @@ class PostService {
           })
         );
   
-        // 기존 태그 관계 제거 후 새로운 태그 관계 생성
+        //기존 태그 관계 제거 후 새로운 태그 관계 생성
         await PostTag.destroy({ where: { postId: post.id } });
         await PostTag.bulkCreate(
           tags.map((tag) => ({ postId: post.id, tagId: tag.id })),
@@ -310,8 +300,8 @@ class PostService {
           location: updatedPost?.location,
           moment: updatedPost?.moment,
           isPublic: updatedPost?.isPublic,
-          likeCount, // 좋아요 수 계산
-          commentCount, // 댓글 수 계산
+          likeCount,
+          commentCount,
           createdAt: updatedPost?.createdAt,
         },
       };
@@ -321,7 +311,7 @@ class PostService {
     }
   }
 
-  // 게시글 삭제
+  //게시글 삭제
   async deletePost(postId: number, data: { postPassword: string }) {
     const postValidation = await this.validatePost(postId, data.postPassword);
     if (postValidation.status !== 200) return postValidation;
@@ -333,14 +323,12 @@ class PostService {
 
     try {
 
-      // 연결된 댓글 삭제
-      //await Comment.destroy({ where: { postId } });
-      
-      // 삭제될 게시글과 관련된 태그 가져오기
+      //삭제될 게시글과 관련된 태그 가져오기
       const postTags = await PostTag.findAll({ where: { postId } });
       const tagIds = postTags.map((postTag) => postTag.tagId);
       await post.destroy();
-      // 각 태그가 다른 게시글에서도 사용되는지 확인 후, 사용되지 않는 태그 삭제
+
+      //각 태그가 다른 게시글에서도 사용되는지 확인 후, 사용되지 않는 태그 삭제
       for (const tagId of tagIds) {
         const postTagCount = await PostTag.count({ where: { tagId } });
         if (postTagCount === 0) {
@@ -348,7 +336,7 @@ class PostService {
       }
     }
 
-          // 그룹의 게시글 수 업데이트
+      //그룹의 게시글 수 업데이트
       const group = await Group.findByPk(post.groupId);
       if (group) {
         await group.calculatePostCount();
@@ -416,7 +404,7 @@ class PostService {
 
   // 게시글에 공감하기
   async likePost(postId: number): Promise<Post> {
-    // 게시글 조회
+
     const post = await Post.findByPk(postId);
     if (!post) throw new Error("게시글을 찾을 수 없습니다.");
   
@@ -424,7 +412,6 @@ class PostService {
     post.likeCount += 1;
     await post.save();
   
-    //뱃지 부여 로직 실행
     const badgeId = 5;
 
     // 공감 개수 조건을 검사

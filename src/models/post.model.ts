@@ -1,10 +1,5 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
-import PostLike from './postLike.model'; // PostLike 모델 import
 import Tag from "./tag.model";
-import GroupBadge from "./groupBadge.model";
-import Group from "./group.model";
-
-// 모델의 속성 인터페이스 정의
 interface PostAttributes {
   id: number;
   nickname: string;
@@ -19,12 +14,11 @@ interface PostAttributes {
   createdAt: Date;
   updatedAt?: Date;
   deletedAt?: Date;
-  tags?: Tag[]; // 태그 속성 추가
-  likeCount?: number; // 추가: 좋아요 수
-  commentCount?: number; // 추가: 댓글 수
+  tags?: Tag[];
+  likeCount?: number;
+  commentCount?: number;
 }
 
-// 일부 필드만 필수로 지정할 수 있도록 인터페이스 확장
 interface PostCreationAttributes
   extends Optional<
     PostAttributes,
@@ -35,7 +29,7 @@ interface PostCreationAttributes
     | "createdAt"
     | "updatedAt"
     | "deletedAt"
-    | "tags" // 태그 필드를 Optional로 확장
+    | "tags"
   > {}
 
 // Sequelize 모델 정의
@@ -57,9 +51,9 @@ class Post
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
-  public tags?: Tag[]; // 태그 속성 구현
-  public likeCount!: number; // 좋아요 수
-  public commentCount!: number; // 댓글 수
+  public tags?: Tag[];
+  public likeCount!: number;
+  public commentCount!: number;
 
   static initModel(sequelize: Sequelize) {
     Post.init(
@@ -77,8 +71,8 @@ class Post
           type: DataTypes.INTEGER,
           allowNull: false,
           references: {
-            model: "groups", // 참조하는 테이블 이름
-            key: "id", // 참조하는 컬럼 이름
+            model: "groups",
+            key: "id",
           },
           onDelete: "CASCADE",
           onUpdate: "CASCADE",
@@ -141,14 +135,13 @@ class Post
         modelName: "Post",
         tableName: "posts",
         charset: "utf8",
-        collate: "utf8_general_ci", // 한글 저장
+        collate: "utf8_general_ci",
         timestamps: true,
-        underscored: true, // 필드 이름을 snake_case로 자동 변환
+        underscored: true,
       }
     );
   }
 
-  // 관계 설정
   static associate(models: any) {
     Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });

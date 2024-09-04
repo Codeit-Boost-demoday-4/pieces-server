@@ -6,8 +6,6 @@ import badgeRouter from './routes/badge.router';
 import postRouter from './routes/post.router';
 import commentRouter from './routes/comment.router';
 import { setupSwagger } from '../swagger'; // Swagger 설정 임포트
-import BadgeService from './services/badge.service'; // BadgeService 임포트
-import Group from './models/group.model'; // Group 모델 임포트
 import Badge from './models/badge.model';
 import cors from 'cors';
 
@@ -36,7 +34,6 @@ app.use(cors({
 // Swagger 설정 추가
 setupSwagger(app);
 
-// '/api' prefix로 라우터를 등록, group router가 /api/groups를 거치게됨 (ex: /api/groups)
 app.use('/api/groups', groupRouter);  
 app.use('/api/badges', badgeRouter);
 app.use('/api', postRouter, commentRouter);
@@ -55,18 +52,6 @@ sequelize.authenticate()
     await Badge.seedBadges(); // 시드 데이터 추가
 
     console.log('모든 모델 동기화에 성공했습니다.');
-
-    /*
-        // 모든 그룹에 대해 뱃지 검토 및 부여
-        const badgeService = new BadgeService();
-        const groups = await sequelize.models.Group.findAll(); // 모든 그룹 조회
-    
-        for (const group of groups) {
-          if (group instanceof Group) {
-            await badgeService.awardBadges(group.id); // 각 그룹에 대해 뱃지 부여
-          }
-        }
-          */
           
   })
 

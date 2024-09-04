@@ -1,6 +1,4 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
-import Post from './post.model'; // Post 모델 import
-
 interface PostLikeAttributes {
   postId: number;
   createdAt: Date;
@@ -44,7 +42,6 @@ class PostLike
     );
   }
 
-// 관계 설정
   static associate(models: any) {
     PostLike.belongsTo(models.Post, { foreignKey: 'postId' });
   }

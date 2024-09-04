@@ -29,7 +29,7 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
         tableName: 'badges',
         charset: 'utf8mb4',
         collate: 'utf8mb4_unicode_ci',
-        timestamps: false, // 타임스탬프 필드 사용 안 함
+        timestamps: false,
         underscored: true,
       }
     );
@@ -41,7 +41,7 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
     Badge.hasMany(models.GroupBadge, { foreignKey: 'badgeId', as: 'groupBadges' });
   }
 
-    // 시드 데이터 추가
+  // 시드 데이터 추가
   static async seedBadges() {
     const badges = [
       { id: 1, name: '👾7일 연속 추억 등록' },

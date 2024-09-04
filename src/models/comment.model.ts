@@ -46,8 +46,8 @@ class Comment
           type: DataTypes.INTEGER,
           allowNull: false,
           references: {
-            model: "posts", // 참조하는 테이블 이름
-            key: "id", // 참조하는 컬럼 이름
+            model: "posts",
+            key: "id",
           },
           onDelete: "CASCADE",
           onUpdate: "CASCADE",
