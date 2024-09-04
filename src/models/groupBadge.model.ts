@@ -22,6 +22,8 @@ class GroupBadge extends Model<GroupBadgeAttributes> implements GroupBadgeAttrib
             model: Group,
             key: 'id',
           },
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
         },
         badgeId: {
           type: DataTypes.INTEGER.UNSIGNED,
@@ -30,6 +32,8 @@ class GroupBadge extends Model<GroupBadgeAttributes> implements GroupBadgeAttrib
             model: Badge,
             key: 'id',
           },
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
         },
       },
       {

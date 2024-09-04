@@ -32,7 +32,7 @@ class GroupController {
    *               imageUrl: "http://example.com/image.png"
    *               introduction: "This is a new group."
    *               isPublic: true
-   *               password: "password123"
+   *               password: "pw123"
    *     responses:
    *       201:
    *         description: 등록 성공!
@@ -235,7 +235,7 @@ class GroupController {
    *               imageUrl: "http://example.com/newimage.png"
    *               introduction: "This is an updated group."
    *               isPublic: true
-   *               password: "password123"
+   *               password: "pw123"
    *     responses:
    *       200:
    *         description: 업데이트 성공!
@@ -300,7 +300,7 @@ class GroupController {
  *                 type: string
  *                 description: 비밀번호 확인
  *             example:
- *               password: "password123"
+ *               password: "pw123"
  *     responses:
  *       200:
  *         description: 삭제 성공!
@@ -318,15 +318,23 @@ class GroupController {
       const { id } = req.params;
       const { password } = req.body;
 
-      const group = await GroupService.getGroupById(parseInt(id));
+    // 그룹 ID 파싱
+    const groupId = parseInt(id);
+    if (isNaN(groupId)) {
+      return res.status(400).json({ error: '유효한 그룹 ID를 제공해 주세요.' });
+    }
 
-      // 비밀번호 확인
-      const isMatch = await bcrypt.compare(password, group.passwordHash);
-      if (!isMatch) {
-          return res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
-      }
+    // 그룹 찾기
+    const group = await GroupService.getGroupById(groupId);
+    
+    // 비밀번호 확인
+    const isMatch = await bcrypt.compare(password, group.passwordHash);
+    if (!isMatch) {
+      return res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
+    }
 
-      await GroupService.deleteGroup(parseInt(id));
+    // 그룹 삭제
+    await GroupService.deleteGroup(groupId);
 
       res.status(200).json({ message: '그룹이 성공적으로 삭제되었습니다.' });
     } catch (error) {
@@ -359,7 +367,7 @@ class GroupController {
    *                 type: string
    *                 description: 그룹 비밀번호
    *             example:
-   *               password: "password123"
+   *               password: "pw123"
    *     responses:
    *       200:
    *         description: 비밀번호가 확인되었습니다.

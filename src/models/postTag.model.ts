@@ -25,6 +25,8 @@ class PostTag
           allowNull: false,
           references: { model: "posts", key: "id" },
           primaryKey: true, // 복합 키의 일부로 설정
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
 
         },
         tagId: {
@@ -32,6 +34,8 @@ class PostTag
           allowNull: false,
           references: { model: "tags", key: "id" },
           primaryKey: true, // 복합 키의 일부로 설정
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
 
         },
         createdAt: {
