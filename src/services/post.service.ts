@@ -118,7 +118,11 @@ class PostService {
       }
     }
 
-
+      // 그룹의 게시글 수 업데이트
+      const group = await Group.findByPk(data.groupId);
+      if (group) {
+        await group.calculatePostCount();
+      }
 
       return {
         status: 201,
@@ -330,7 +334,8 @@ class PostService {
     try {
 
       // 연결된 댓글 삭제
-      await Comment.destroy({ where: { postId } });
+      //await Comment.destroy({ where: { postId } });
+      
       // 삭제될 게시글과 관련된 태그 가져오기
       const postTags = await PostTag.findAll({ where: { postId } });
       const tagIds = postTags.map((postTag) => postTag.tagId);
@@ -342,6 +347,13 @@ class PostService {
          await Tag.destroy({ where: { id: tagId } });
       }
     }
+
+          // 그룹의 게시글 수 업데이트
+      const group = await Group.findByPk(post.groupId);
+      if (group) {
+        await group.calculatePostCount();
+      }
+
       return { status: 200, response: { message: "게시글 삭제 성공" } };
     } catch (error) {
       console.error(error);

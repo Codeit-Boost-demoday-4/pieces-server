@@ -23,6 +23,8 @@ class PostLike
           type: DataTypes.INTEGER,
           allowNull: false,
           references: { model: "posts", key: "id" },
+          onDelete: "CASCADE",
+          onUpdate: "CASCADE",
         },
         createdAt: {
           type: DataTypes.DATE,
