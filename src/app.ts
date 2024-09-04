@@ -48,7 +48,7 @@ sequelize.authenticate()
     console.log('연결에 성공했습니다.');
 
     // 모든 모델을 동기화
-    return sequelize.sync({ alter: true }); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
+    return sequelize.sync({ /*alter: true*/ }); // alter: true는 기존 테이블을 변경할 수 있도록 설정    
   })
   .then(async() => {
 

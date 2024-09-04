@@ -27,8 +27,8 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
       {
         sequelize,
         tableName: 'badges',
-        charset: 'utf8',
-        collate: 'utf8_general_ci',
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci',
         timestamps: false, // 타임스탬프 필드 사용 안 함
         underscored: true,
       }
@@ -44,11 +44,11 @@ class Badge extends Model<BadgeAttributes, BadgeCreationAttributes> implements B
     // 시드 데이터 추가
   static async seedBadges() {
     const badges = [
-      { id: 1, name: '7일 연속 추억 등록' },
-      { id: 2, name: '추억 수 20개 이상 등록' },
-      { id: 3, name: '그룹 생성 후 1년 달성' },
-      { id: 4, name: '그룹 공감 1만 개 이상 받기' },
-      { id: 5, name: '추억 공감 1만 개 이상 받기' },
+      { id: 1, name: '👾7일 연속 추억 등록' },
+      { id: 2, name: '❤️‍🔥추억 수 20개 이상 등록' },
+      { id: 3, name: '🎉그룹 생성 후 1년 달성' },
+      { id: 4, name: '🌼그룹 공감 1만 개 이상 받기' },
+      { id: 5, name: '💖추억 공감 1만 개 이상 받기' },
     ];
 
     for (const badge of badges) {
