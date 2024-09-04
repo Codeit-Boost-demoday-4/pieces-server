@@ -1,3 +1,4 @@
+//데이터베이스 설정
 import dotenv from "dotenv"
 dotenv.config() // .env 파일의 환경 변수를 불러옵니다
 

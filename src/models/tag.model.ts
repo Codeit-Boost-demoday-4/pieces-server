@@ -40,7 +40,6 @@ class Tag
     );
   }
 
-  // 관계 설정
   static associate(models: any) {
     Tag.belongsToMany(models.Post, { through: models.PostTag, as: 'posts', foreignKey: 'tagId' });
   }

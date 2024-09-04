@@ -41,17 +41,14 @@ class GroupBadge extends Model<GroupBadgeAttributes> implements GroupBadgeAttrib
         tableName: 'group_badges',
         charset: 'utf8',
         collate: 'utf8_general_ci',
-        timestamps: false, // 타임스탬프 필드 사용 안 함
+        timestamps: false,
         underscored: true,
       }
     );
   }
 
   static associate(models: any) {
-    // GroupBadge는 Group과 다대일(N:1) 관계를 가집니다.
     GroupBadge.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
-    
-    // GroupBadge는 Badge와 다대일(N:1) 관계를 가집니다.
     GroupBadge.belongsTo(models.Badge, { foreignKey: 'badgeId', as: 'badge' });
   }
 }

@@ -13,8 +13,6 @@ interface GroupLikeAttributes {
     public userId!: number;
     public readonly createdAt!: Date;
 
-
-// 모델 초기화 함수
 static initModel(sequelize: Sequelize) {
     GroupLike.init(
     {

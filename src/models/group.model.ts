@@ -3,7 +3,6 @@ import Post from './post.model';
 import GroupBadge from './groupBadge.model';
 import BadgeService from "../services/badge.service";
 
-// 모델의 속성 인터페이스 정의
 interface GroupAttributes {
   id: number;
   name: string;
@@ -12,8 +11,8 @@ interface GroupAttributes {
   isPublic: boolean;
   passwordHash: string;
   createdAt: Date;
-  updatedAt?: Date; //선택적 필드
-  deletedAt?: Date; //선택적 필드
+  updatedAt?: Date;
+  deletedAt?: Date;
   likeCount?: number;
   badgeCount?: number;
   postCount?: number;
@@ -28,8 +27,8 @@ class Group
   extends Model<GroupAttributes, GroupCreationAttributes>
   implements GroupAttributes
 {
-  public id!: number; // 기본 키로 사용할 id 필드 추가
-  public name!: string; // 속성뒤 !는 not null을 의미
+  public id!: number;
+  public name!: string;
   public imageUrl!: string;
   public introduction!: string;
   public isPublic!: boolean;
@@ -46,8 +45,8 @@ static initModel(sequelize: Sequelize) {
       {
         id: {
           type: DataTypes.INTEGER,
-          autoIncrement: true, // 자동 증가
-          primaryKey: true, // 기본 키
+          autoIncrement: true,
+          primaryKey: true,
         },
         name: {
           type: DataTypes.STRING,
@@ -103,14 +102,13 @@ static initModel(sequelize: Sequelize) {
         modelName: "Group",
         tableName: "groups",
         charset: "utf8",
-        collate: "utf8_general_ci", // 한글 저장
+        collate: "utf8_general_ci",
         timestamps: true,
-        underscored: true, // **필드 이름을 snake_case로 자동 변환**
+        underscored: true,
       }
     );
   }
 
-// 관계 설정
     static associate(models: any) {
       Group.hasMany(models.Post, { foreignKey: "groupId", as: "posts" });
       Group.hasMany(models.GroupBadge, { foreignKey: "groupId", as: "groupBadges" });
@@ -118,23 +116,23 @@ static initModel(sequelize: Sequelize) {
 
 
 
-// badgeCount를 계산하는 메서드
+  //badgeCount를 계산하는 메서드
   public async calculateBadgeCount(): Promise<number> {
     const badgeCount = await GroupBadge.count({
       where: { groupId: this.id },
     });
     this.badgeCount = badgeCount;
-    await this.save();  // 업데이트된 값을 저장합니다.
+    await this.save();
     return badgeCount;
   }
 
-// postCount를 계산하는 메서드
+  //postCount를 계산하는 메서드
   public async calculatePostCount(): Promise<number> {
     const postCount = await Post.count({
       where: { groupId: this.id },
     });
     this.postCount = postCount;
-    await this.save();  // 업데이트된 값을 저장합니다.
+    await this.save();
     return postCount;
   }
 }

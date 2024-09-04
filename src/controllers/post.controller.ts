@@ -305,7 +305,6 @@ async getPosts(req: Request, res: Response) {
     const isPublicBoolean = isPublic === 'true' ? true : isPublic === 'false' ? false : undefined;
     const groupIdNumber = groupId ? parseInt(groupId as string, 10) : undefined;
 
-    // 서비스 호출
     const result = await PostService.getPosts({
       page: pageNumber,
       pageSize: pageSizeNumber,
@@ -315,7 +314,6 @@ async getPosts(req: Request, res: Response) {
       groupId: groupIdNumber
     });
 
-    // 응답 반환
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
@@ -336,11 +334,11 @@ async getPosts(req: Request, res: Response) {
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the post to retrieve
+ *         description: 조회할 post의 id
  *         example: 1
  *     responses:
  *       200:
- *         description: Successfully retrieved the post details
+ *         description: 성공적으로 조회했습니다.
  *         content:
  *           application/json:
  *             schema:
@@ -348,58 +346,58 @@ async getPosts(req: Request, res: Response) {
  *               properties:
  *                 id:
  *                   type: integer
- *                   description: ID of the post
+ *                   description: post의 id
  *                   example: 1
  *                 nickname:
  *                   type: string
- *                   description: Nickname of the user who created the post
+ *                   description: post를 작성한 사용자의 닉네임
  *                   example: "user123"
  *                 title:
  *                   type: string
- *                   description: Title of the post
+ *                   description: post의 제목
  *                   example: "Sample Post Title"
  *                 content:
  *                   type: string
- *                   description: Content of the post
+ *                   description: post의 내용
  *                   example: "This is the content of the post."
  *                 imageUrl:
  *                   type: string
- *                   description: URL of the image associated with the post
+ *                   description: image URL
  *                   example: "http://example.com/image.jpg"
  *                 tags:
  *                   type: array
  *                   items:
  *                     type: string
- *                   description: Tags associated with the post
+ *                   description: Tags
  *                   example: ["tag1", "tag2"]
  *                 location:
  *                   type: string
- *                   description: Location related to the post
- *                   example: "Seoul, Korea"
+ *                   description: 위치
+ *                   example: "서울"
  *                 moment:
  *                   type: string
  *                   format: date-time
- *                   description: Date and time when the event in the post occurred
+ *                   description: post를 작성한 시간
  *                   example: "2024-08-27T14:00:00Z"
  *                 isPublic:
  *                   type: boolean
- *                   description: Indicates whether the post is public
+ *                   description: post의 공개 여부
  *                   example: true
  *                 likeCount:
  *                   type: integer
- *                   description: Number of likes on the post
+ *                   description: post 공감 개수
  *                   example: 10
  *                 commentCount:
  *                   type: integer
- *                   description: Number of comments on the post
+ *                   description: post 댓글 개수
  *                   example: 5
  *                 createdAt:
  *                   type: string
  *                   format: date-time
- *                   description: Date and time when the post was created
+ *                   description: post를 작성한 시간
  *                   example: "2024-08-27T14:00:00Z"
  *       404:
- *         description: Post not found
+ *         description: Post를 찾을 수 없습니다.
  *         content:
  *           application/json:
  *             schema:
@@ -407,9 +405,9 @@ async getPosts(req: Request, res: Response) {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Post not found"
+ *                   example: "Post를 찾을 수 없습니다."
  *       500:
- *         description: Internal server error
+ *         description: 서버 오류
  *         content:
  *           application/json:
  *             schema:
@@ -417,18 +415,16 @@ async getPosts(req: Request, res: Response) {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Server error"
+ *                   example: "서버 오류입니다"
  */
   async getPostDetail(req: Request, res: Response) {
     try {
       const postId = parseInt(req.params.postId, 10);
       const result = await PostService.getPostDetail(postId);
 
-      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
       return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
-      // 에러 발생 시, 500 내부 서버 오류를 반환
       return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
@@ -489,7 +485,7 @@ async getPosts(req: Request, res: Response) {
  *                 type: string
  *                 format: date-time
  *                 description: Updated date and time when the event in the post occurred
- *                 example: "2024-08-28T15:00:00Z"
+ *                 example: "2024-08-28"
  *               tags:
  *                 type: array
  *                 items:
@@ -549,7 +545,7 @@ async getPosts(req: Request, res: Response) {
  *                   type: string
  *                   format: date-time
  *                   description: Updated date and time when the event in the post occurred
- *                   example: "2024-08-28T15:00:00Z"
+ *                   example: "2024-08-28"
  *                 isPublic:
  *                   type: boolean
  *                   description: Indicates whether the post is public
@@ -781,11 +777,9 @@ async getPosts(req: Request, res: Response) {
       const postId = parseInt(req.params.postId, 10);
       const result = await PostService.verifyPostPassword(postId, req.body);
 
-      // PostService로부터 받은 상태 코드와 응답을 사용하여 클라이언트에 반환
       return res.status(result.status).json(result.response);
     } catch (error) {
       console.error(error);
-      // 에러 발생 시, 500 내부 서버 오류를 반환
       return res.status(500).json({ message: "서버 오류입니다" });
     }
   }
@@ -844,22 +838,18 @@ async likePost(req: Request, res: Response) {
   try {
     const postId = parseInt(req.params.postId);
     
-    // 게시글 공감하기 서비스 호출
     const post = await PostService.likePost(postId);
 
     if (!post) {
-      // 게시글이 없을 경우 404 응답
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // 공감 성공 시 응답
     return res.status(200).json({
       status: "success",
       likeCount: post.likeCount,
     });
   } catch (error) {
     console.error(error);
-    // 서버 오류 시 응답
     return res.status(500).json({ message: "Server error" });
   }
 }

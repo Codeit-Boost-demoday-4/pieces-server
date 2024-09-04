@@ -140,7 +140,7 @@ class CommentController {
       const params = {
         page: parseInt(req.query.page as string, 10) || 1,
         pageSize: parseInt(req.query.pageSize as string, 10) || 10,
-        postId: parseInt(req.query.postId as string, 10), // 게시글 ID 필드 추가
+        postId: parseInt(req.query.postId as string, 10),
       };
 
       const result = await CommentService.getComments(params);

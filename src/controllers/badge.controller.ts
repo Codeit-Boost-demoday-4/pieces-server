@@ -53,13 +53,11 @@ class BadgeController {
     }
 
     try {
-      // 그룹에 연관된 뱃지 조회
       const groupBadges = await GroupBadge.findAll({
         where: { groupId },
         include: [{ model: Badge, as: 'badge' }],
       });
 
-      // 뱃지 이름을 포함하여 응답
       const badges = groupBadges.map(groupBadge => ({
         id: groupBadge.badgeId,
         name: groupBadge.badge?.name,
