@@ -24,7 +24,7 @@ class PostTag
           type: DataTypes.INTEGER,
           allowNull: false,
           references: { model: "posts", key: "id" },
-          primaryKey: true, // 복합 키의 일부로 설정
+          primaryKey: true, //복합 키의 일부
           onDelete: "CASCADE",
           onUpdate: "CASCADE",
 
@@ -33,7 +33,7 @@ class PostTag
           type: DataTypes.INTEGER,
           allowNull: false,
           references: { model: "tags", key: "id" },
-          primaryKey: true, // 복합 키의 일부로 설정
+          primaryKey: true, // 복합 키의 일부
           onDelete: "CASCADE",
           onUpdate: "CASCADE",
 

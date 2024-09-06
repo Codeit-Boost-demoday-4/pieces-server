@@ -26,6 +26,7 @@ app.use(cors({
   origin: [
     'http://pieces.react.codeit.s3-website.ap-northeast-2.amazonaws.com',
     'http://localhost:3000',
+    'http://localhost:3001',
   ],// 프론트엔드의 도메인
     
   methods: 'GET,POST,PUT,DELETE', // 허용할 HTTP 메서드
