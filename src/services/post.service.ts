@@ -378,6 +378,7 @@ class PostService {
           imageUrl: post.imageUrl,
           tags: post.tags?.map((tag) => tag.text) || [],
           location: post.location,
+          content: post.content,
           moment: post.moment,
           isPublic: post.isPublic,
           likeCount,
