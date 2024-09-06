@@ -55,7 +55,7 @@ class GroupController {
  *               imageUrl: "http://example.com/image.png"
  *               introduction: "This is a new group."
  *               isPublic: true
- *               password: "password123"
+ *               password: "pw123"
  *     responses:
  *       201:
  *         description: 등록 성공!
@@ -87,58 +87,126 @@ class GroupController {
         });
     }
     /**
-       * @swagger
-       * /api/groups:
-       *   get:
-       *     summary: 그룹을 조회합니다.
-       *     description: 공개여부에 따라 그룹을 조회합니다.
-       *     tags:
-       *       - Groups
-       *     parameters:
-       *       - in: query
-       *         name: isPublic
-       *         schema:
-       *           type: boolean
-       *           default: true
-       *         description: '그룹의 공개 여부 (true: 공개, false: 비공개)'
-       *     responses:
-       *       200:
-       *         description: A list of groups
-       *         content:
-       *           application/json:
-       *             schema:
-       *               type: array
-       *               items:
-       *                 type: object
-       *                 properties:
-       *                   id:
-       *                     type: integer
-       *                   name:
-       *                     type: string
-       *                   imageUrl:
-       *                     type: string
-       *                   introduction:
-       *                     type: string
-       *                   isPublic:
-       *                     type: boolean
-       *                   createdAt:
-       *                     type: string
-       *                     format: date-time
-       *       500:
-       *         description: Server error
-       */
+     * @swagger
+     * /api/groups:
+     *   get:
+     *     summary: 그룹 목록 조회
+     *     description: 페이지네이션, 검색, 정렬 기능을 사용하여 그룹 목록을 조회합니다.
+     *     tags: [Groups]
+     *     parameters:
+     *       - name: page
+     *         in: query
+     *         description: 현재 페이지 번호
+     *         required: true
+     *         schema:
+     *           type: integer
+     *           example: 1
+     *       - name: pageSize
+     *         in: query
+     *         description: 페이지당 아이템 수
+     *         required: true
+     *         schema:
+     *           type: integer
+     *           example: 10
+     *       - name: sortBy
+     *         in: query
+     *         description: 정렬 기준 (latest, mostPosted, mostLiked, mostBadge)
+     *         required: true
+     *         schema:
+     *           type: string
+     *           enum: [latest, mostPosted, mostLiked, mostBadge]
+     *           example: latest
+     *       - name: keyword
+     *         in: query
+     *         description: 검색어
+     *         schema:
+     *           type: string
+     *       - name: isPublic
+     *         in: query
+     *         description: 공개 여부 (true 또는 false)
+     *         required: true
+     *         schema:
+     *           type: boolean
+     *           example: true
+     *     responses:
+     *       200:
+     *         description: 그룹 목록 조회 성공
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 currentPage:
+     *                   type: integer
+     *                   example: 1
+     *                 totalPages:
+     *                   type: integer
+     *                   example: 5
+     *                 totalItemCount:
+     *                   type: integer
+     *                   example: 50
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       id:
+     *                         type: integer
+     *                         example: 1
+     *                       name:
+     *                         type: string
+     *                         example: "그룹 이름"
+     *                       imageUrl:
+     *                         type: string
+     *                         example: "http://example.com/image.jpg"
+     *                       isPublic:
+     *                         type: boolean
+     *                         example: true
+     *                       likeCount:
+     *                         type: integer
+     *                         example: 0
+     *                       badgeCount:
+     *                         type: integer
+     *                         example: 0
+     *                       postCount:
+     *                         type: integer
+     *                         example: 0
+     *                       createdAt:
+     *                         type: string
+     *                         format: date-time
+     *                         example: "2024-02-22T07:47:49.803Z"
+     *                       introduction:
+     *                         type: string
+     *                         example: "그룹 소개"
+     *       400:
+     *         description: 잘못된 요청
+     *       500:
+     *         description: 서버 오류
+     */
     getGroups(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const isPublic = req.query.isPublic === 'false' ? false : true; // 기본값은 true
-                const groups = yield group_service_1.default.getGroups(isPublic);
+                const { page, pageSize, sortBy, keyword, isPublic } = req.query;
+                const pageNumber = parseInt(page, 10);
+                const pageSizeNumber = parseInt(pageSize, 10);
+                const sortByString = sortBy;
+                const keywordString = keyword;
+                const isPublicBoolean = isPublic === 'true';
+                const groups = yield group_service_1.default.getGroups({
+                    page: pageNumber,
+                    pageSize: pageSizeNumber,
+                    sortBy: sortByString,
+                    keyword: keywordString || '',
+                    isPublic: isPublicBoolean,
+                });
                 res.status(200).json(groups);
             }
             catch (error) {
-                res.status(500).json({ error: 'Server error' });
+                res.status(500).json({ error: '서버 오류' });
             }
         });
     }
+    //그룹 상세 조회
     getGroupById(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -147,7 +215,7 @@ class GroupController {
                 res.status(200).json(group);
             }
             catch (error) {
-                res.status(404).json({ error: '존재하지 않습니다.' });
+                res.status(404).json({ error: '그룹이 존재하지 않습니다.' });
             }
         });
     }
@@ -188,7 +256,7 @@ class GroupController {
      *               imageUrl: "http://example.com/newimage.png"
      *               introduction: "This is an updated group."
      *               isPublic: true
-     *               password: "password123"
+     *               password: "pw123"
      *     responses:
      *       200:
      *         description: 업데이트 성공!
@@ -244,7 +312,7 @@ class GroupController {
    *                 type: string
    *                 description: 비밀번호 확인
    *             example:
-   *               password: "password123"
+   *               password: "pw123"
    *     responses:
    *       200:
    *         description: 삭제 성공!
@@ -262,13 +330,20 @@ class GroupController {
             try {
                 const { id } = req.params;
                 const { password } = req.body;
-                const group = yield group_service_1.default.getGroupById(parseInt(id));
+                // 그룹 ID 파싱
+                const groupId = parseInt(id);
+                if (isNaN(groupId)) {
+                    return res.status(400).json({ error: '유효한 그룹 ID를 입력하세요.' });
+                }
+                // 그룹 찾기
+                const group = yield group_service_1.default.getGroupById(groupId);
                 // 비밀번호 확인
                 const isMatch = yield bcryptjs_1.default.compare(password, group.passwordHash);
                 if (!isMatch) {
                     return res.status(403).json({ error: '비밀번호가 틀렸습니다.' });
                 }
-                yield group_service_1.default.deleteGroup(parseInt(id));
+                // 그룹 삭제
+                yield group_service_1.default.deleteGroup(groupId);
                 res.status(200).json({ message: '그룹이 성공적으로 삭제되었습니다.' });
             }
             catch (error) {
@@ -301,7 +376,7 @@ class GroupController {
    *                 type: string
    *                 description: 그룹 비밀번호
    *             example:
-   *               password: "password123"
+   *               password: "pw123"
    *     responses:
    *       200:
    *         description: 비밀번호가 확인되었습니다.
@@ -398,78 +473,6 @@ class GroupController {
             }
             catch (error) {
                 res.status(404).json({ error: '존재하지 않습니다.' });
-            }
-        });
-    }
-    /**
-     * @swagger
-     * /api/groups/search:
-     *   get:
-     *     summary: 그룹을 조회합니다. 공개 여부와 이름으로 검색할 수 있습니다.
-     *     tags:
-     *       - Groups
-     *     parameters:
-     *       - in: query
-     *         name: isPublic
-     *         schema:
-     *           type: boolean
-     *           default: true
-     *           description: '그룹의 공개 여부 (true: 공개, false: 비공개).'
-     *       - in: query
-     *         name: name
-     *         schema:
-     *           type: string
-     *           description: '검색할 그룹 이름'
-     *     responses:
-     *       200:
-     *         description: 조회 성공
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 type: object
-     *                 properties:
-     *                   id:
-     *                     type: integer
-     *                   name:
-     *                     type: string
-     *                   imageUrl:
-     *                     type: string
-     *                   introduction:
-     *                     type: string
-     *                   isPublic:
-     *                     type: boolean
-     *                   createdAt:
-     *                     type: string
-     *                     format: date-time
-     *                   postCount:
-     *                     type: integer
-     *                   likeCount:
-     *                     type: integer
-     *                   badgeCount:
-     *                     type: integer
-     *       500:
-     *         description: 서버 오류
-     */
-    getGroupsByName(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // 쿼리 매개변수에서 isPublic과 name을 가져옵니다.
-                const isPublic = req.query.isPublic === 'false' ? false : true; // 기본값은 true
-                const name = req.query.name;
-                // 입력된 쿼리 매개변수 로깅
-                console.log(`Query Parameters - isPublic: ${isPublic}, name: ${name}`);
-                // 그룹 조회 서비스 호출
-                const groups = yield group_service_1.default.getGroupsByName(isPublic, name);
-                // 조회된 그룹을 반환하기 전에 로깅
-                console.log('Retrieved Groups: ', groups);
-                // 조회된 그룹 반환
-                res.status(200).json(groups);
-            }
-            catch (error) {
-                // 서버 오류 처리
-                res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         });
     }

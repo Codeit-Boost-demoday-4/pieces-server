@@ -10,12 +10,18 @@ class Comment extends sequelize_1.Model {
                 autoIncrement: true,
             },
             nickname: {
-                type: sequelize_1.DataTypes.INTEGER,
+                type: sequelize_1.DataTypes.STRING,
                 allowNull: false,
             },
             postId: {
                 type: sequelize_1.DataTypes.INTEGER,
                 allowNull: false,
+                references: {
+                    model: "posts",
+                    key: "id",
+                },
+                onDelete: "CASCADE",
+                onUpdate: "CASCADE",
             },
             content: {
                 type: sequelize_1.DataTypes.TEXT,
@@ -47,6 +53,9 @@ class Comment extends sequelize_1.Model {
             timestamps: true,
             underscored: true,
         });
+    }
+    static associate(models) {
+        Comment.belongsTo(models.Post, { as: 'post', foreignKey: 'postId' });
     }
 }
 exports.default = Comment;
