@@ -1,6 +1,5 @@
 import { Op } from "sequelize";
 import Post from "../models/post.model";
-import PostLike from "../models/postLike.model";
 import Tag from "../models/tag.model";
 import PostTag from "../models/postTag.model";
 import Comment from "../models/comment.model";
@@ -36,11 +35,18 @@ class PostService {
     return { status: 200, response: { post } };
   }
 
-  // 좋아요 수와 댓글 수를 조회하는 함수
+  //게시글 공감 수와 댓글 수 조회
   private async getPostDetails(postId: number) {
-    const likeCount = await PostLike.count({ where: { postId } });
-    const commentCount = await Comment.count({ where: { postId } });
-    return { likeCount, commentCount };
+    const post = await Post.findOne({
+      where: { id: postId }
+    });
+
+    if (post) {
+      const likeCount = post.likeCount;
+      const commentCount = await Comment.count({ where: { postId } });
+      return { likeCount, commentCount };
+    }
+    return { likeCount: 0, commentCount: 0 };
   }
 
   //게시글 생성
@@ -360,8 +366,7 @@ class PostService {
     }
 
     try {
-      const likeCount = await PostLike.count({ where: { postId: post.id } });
-      const commentCount = await Comment.count({ where: { postId: post.id } });
+      const { likeCount, commentCount } = await this.getPostDetails(post.id);
 
       return {
         status: 200,
