@@ -24,13 +24,8 @@ class Tag extends sequelize_1.Model {
             underscored: true,
         });
     }
-    // 관계 설정
     static associate(models) {
-        Tag.belongsToMany(models.Post, {
-            through: models.PostTag,
-            foreignKey: "tagId",
-            as: "posts",
-        });
+        Tag.belongsToMany(models.Post, { through: models.PostTag, as: 'posts', foreignKey: 'tagId' });
     }
 }
 exports.default = Tag;

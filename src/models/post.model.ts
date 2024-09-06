@@ -146,7 +146,6 @@ class Post
     Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
     Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
     Post.belongsToMany(models.Tag, { through: models.PostTag, as: 'tags', foreignKey: 'postId' });
-    Post.hasMany(models.PostLike, { foreignKey: 'postId' });
   }
 
 }

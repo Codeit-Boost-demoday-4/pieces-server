@@ -8,7 +8,6 @@ const group_controller_1 = __importDefault(require("../controllers/group.control
 const router = (0, express_1.Router)();
 router.post('/', group_controller_1.default.createGroup); //그룹 생성
 router.get('/', group_controller_1.default.getGroups); //그룹 조회
-router.get('/search', group_controller_1.default.getGroupsByName); // 그룹명으로 그룹 검색
 router.get('/:id', group_controller_1.default.getGroupById); //그룹 조회
 router.put('/:id', group_controller_1.default.updateGroup); //그룹 수정
 router.delete('/:id', group_controller_1.default.deleteGroup); //그룹 삭제

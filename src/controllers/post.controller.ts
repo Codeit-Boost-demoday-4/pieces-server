@@ -194,6 +194,12 @@ class PostController {
  *       - Posts
  *     description: 게시글 목록을 페이지네이션 및 정렬 기준으로 조회합니다.
  *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: 그룹 ID (필수)
  *       - in: query
  *         name: page
  *         schema:
@@ -223,12 +229,6 @@ class PostController {
  *         schema:
  *           type: boolean
  *         description: 공개 여부
- *       - in: query
- *         name: groupId
- *         schema:
- *           type: integer
- *         required: true
- *         description: 그룹 ID (필수)
  *     responses:
  *       200:
  *         description: 게시글 목록이 성공적으로 반환됨
@@ -287,11 +287,11 @@ class PostController {
  *       500:
  *         description: 서버 오류
  */
-
 async getPosts(req: Request, res: Response) {
   try {
     // 요청 쿼리에서 파라미터 추출
-    const { page = 1, pageSize = 10, sortBy = 'latest', keyword, isPublic, groupId } = req.query;
+    const { groupId } = req.params;
+    const { page = 1, pageSize = 10, sortBy = 'latest', keyword, isPublic } = req.query;
 
     // groupId가 제공되지 않았을 경우 에러 반환
     if (!groupId) {
@@ -303,7 +303,7 @@ async getPosts(req: Request, res: Response) {
     const pageSizeNumber = parseInt(pageSize as string, 10);
     const sortByString = sortBy as 'latest' | 'mostCommented' | 'mostLiked';
     const isPublicBoolean = isPublic === 'true' ? true : isPublic === 'false' ? false : undefined;
-    const groupIdNumber = groupId ? parseInt(groupId as string, 10) : undefined;
+    const groupIdNumber = parseInt(groupId as string, 10);
 
     const result = await PostService.getPosts({
       page: pageNumber,

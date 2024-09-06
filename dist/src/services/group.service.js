@@ -13,15 +13,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
-const group_model_1 = __importDefault(require("../models/group.model")); // Group 모델 import
+const group_model_1 = __importDefault(require("../models/group.model"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const badge_service_1 = __importDefault(require("./badge.service"));
 class GroupService {
-    // ID로 특정 그룹 가져오기
+    constructor() {
+        this.badgeService = new badge_service_1.default();
+    }
+    //ID로 특정 그룹 가져오기
     getGroupById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield group_model_1.default.findByPk(id);
             if (!group) {
                 throw new Error('그룹을 찾을 수 없습니다.');
+            }
+            //그룹 생성 후 1년 달성 조건 검사
+            const groupAgeMet = yield this.badgeService.checkGroupAge(id);
+            if (groupAgeMet) {
+                yield this.badgeService.awardBadge(id, 3);
+                //badgeCount 계산 및 저장
+                yield group.calculateBadgeCount();
             }
             return group;
         });
@@ -33,43 +44,57 @@ class GroupService {
             return group;
         });
     }
-    // 공개,비공개 그룹 따로 조회
-    getGroups(isPublic) {
+    getGroups(params) {
         return __awaiter(this, void 0, void 0, function* () {
-            let query = {
-                isPublic
+            const { page, pageSize, sortBy, keyword, isPublic } = params;
+            const offset = (page - 1) * pageSize;
+            //기본 정렬 기준
+            let order;
+            switch (sortBy) {
+                case 'latest':
+                    order = [['createdAt', 'DESC']];
+                    break;
+                case 'mostPosted':
+                    order = [['postCount', 'DESC']];
+                    break;
+                case 'mostLiked':
+                    order = [['likeCount', 'DESC']];
+                    break;
+                case 'mostBadge':
+                    order = [['badgeCount', 'DESC']];
+                    break;
+                default:
+                    order = [['createdAt', 'DESC']];
+            }
+            //검색 조건
+            const searchCondition = keyword
+                ? {
+                    [sequelize_1.Op.or]: [
+                        { name: { [sequelize_1.Op.like]: `%${keyword}%` } },
+                    ],
+                }
+                : {};
+            //쿼리 생성
+            const query = {
+                where: Object.assign(Object.assign({}, searchCondition), { isPublic }),
+                order,
+                limit: pageSize,
+                offset,
             };
-            const groups = yield group_model_1.default.findAll({
-                where: query,
-                attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
-            });
-            return groups;
+            //총 아이템 수 조회
+            const totalItemCount = yield group_model_1.default.count({ where: Object.assign(Object.assign({}, searchCondition), { isPublic }) });
+            //그룹 목록 조회
+            const groups = yield group_model_1.default.findAll(Object.assign(Object.assign({}, query), { attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'] }));
+            const totalPages = Math.ceil(totalItemCount / pageSize);
+            return {
+                currentPage: page,
+                totalPages,
+                totalItemCount,
+                data: groups,
+            };
         });
     }
-    /* 모든 그룹 조회
-    async getGroups(isPublic?: boolean) {
-      let query: any = {};
-  
-      if (isPublic !== undefined) {
-        query.isPublic = isPublic;
-      }
-      
-      const publicGroups = await Group.findAll({
-          //공개그룹 조회
-        where: { isPublic: true },
-        attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
-      });
-  
-      //비공개그룹 조회
-      const privateGroups = await Group.findAll({
-        where: { isPublic: false },
-        attributes: ['id', 'name', 'isPublic', 'introduction', 'createdAt','postCount', 'likeCount'],
-      });
-  
-      return { publicGroups, privateGroups };
-    }
-  */
-    // 그룹 수정
+    //그룹 수정
     updateGroup(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield this.getGroupById(id);
@@ -77,7 +102,7 @@ class GroupService {
             return group;
         });
     }
-    // 그룹 삭제
+    //그룹 삭제
     deleteGroup(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield this.getGroupById(id);
@@ -85,7 +110,7 @@ class GroupService {
             return { message: '그룹을 성공적으로 삭제했습니다.' };
         });
     }
-    // 비밀번호 검증 메소드
+    //비밀번호 검증 메소드
     verifyGroupPassword(id, password) {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield this.getGroupById(id);
@@ -93,40 +118,29 @@ class GroupService {
             return isMatch;
         });
     }
-    // 공감 메소드
+    //공감 메소드
     incrementLikeCount(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield this.getGroupById(id);
             group.likeCount += 1;
             yield group.save();
+            //공감 개수 조건을 검사
+            const minLikesMet = yield this.badgeService.checkMinLikes(id);
+            const badgeId = 4;
+            //조건이 만족되면 뱃지를 부여
+            if (minLikesMet) {
+                yield this.badgeService.awardBadge(id, badgeId);
+            }
+            //badgeCount 계산 및 저장
+            yield group.calculateBadgeCount();
             return group;
         });
     }
-    // 그룹 공개 여부 확인
+    //그룹 공개 여부 확인
     checkIfGroupIsPublic(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const group = yield this.getGroupById(id);
             return { id: group.id, isPublic: group.isPublic };
-        });
-    }
-    // 그룹명으로 그룹 검색
-    getGroupsByName(isPublic, name) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let query = {
-                isPublic
-            };
-            // 그룹 이름으로 검색
-            if (name) {
-                query.name = {
-                    [sequelize_1.Op.like]: `%${name}%`, // 부분 일치 검색, 대소문자 구분 x
-                };
-            }
-            // 그룹을 조회
-            const groups = yield group_model_1.default.findAll({
-                where: query,
-                attributes: ['id', 'name', 'imageUrl', 'isPublic', 'introduction', 'createdAt', 'postCount', 'likeCount', 'badgeCount'],
-            });
-            return groups;
         });
     }
 }

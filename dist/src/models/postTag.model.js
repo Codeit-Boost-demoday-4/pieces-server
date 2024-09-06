@@ -8,11 +8,17 @@ class PostTag extends sequelize_1.Model {
                 type: sequelize_1.DataTypes.INTEGER,
                 allowNull: false,
                 references: { model: "posts", key: "id" },
+                primaryKey: true, //복합 키의 일부
+                onDelete: "CASCADE",
+                onUpdate: "CASCADE",
             },
             tagId: {
                 type: sequelize_1.DataTypes.INTEGER,
                 allowNull: false,
                 references: { model: "tags", key: "id" },
+                primaryKey: true, // 복합 키의 일부
+                onDelete: "CASCADE",
+                onUpdate: "CASCADE",
             },
             createdAt: {
                 type: sequelize_1.DataTypes.DATE,

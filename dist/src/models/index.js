@@ -46,16 +46,16 @@ const sequelize = new sequelize_1.Sequelize(config_1.default.development.databas
     dialect: "mysql",
 });
 exports.sequelize = sequelize;
-// models 폴더의 모든 모델을 동적으로 가져옵니다.
+//models 폴더의 모든 모델을 동적으로 가져옴
 const models = {};
 exports.models = models;
 const loadModels = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // models 디렉토리에서 모든 파일을 읽어옵니다.
+        //models 디렉토리에서 모든 파일을 읽어옴
         const modelFiles = (yield promises_1.default.readdir(path_1.default.join(__dirname)))
             .filter(file => (file.endsWith('.js') || file.endsWith('.ts')) && file !== 'index.js' && file !== 'index.ts');
-        console.log('Model files:', modelFiles); // 파일 목록 출력
-        // 각 파일에 대해 모델을 로드하고 초기화합니다.
+        console.log('Model files:', modelFiles); //파일 목록 출력
+        //각 파일에 대해 모델을 로드하고 초기화
         for (const file of modelFiles) {
             try {
                 const model = (yield Promise.resolve(`${path_1.default.join(__dirname, file)}`).then(s => __importStar(require(s)))).default;
@@ -69,7 +69,7 @@ const loadModels = () => __awaiter(void 0, void 0, void 0, function* () {
                 console.error(`Failed to load model from file ${file}:`, error);
             }
         }
-        // 모델 간의 관계를 설정합니다.
+        //모델 간의 관계 설정
         for (const modelName in models) {
             if (models[modelName].associate) {
                 models[modelName].associate(models);
@@ -80,7 +80,7 @@ const loadModels = () => __awaiter(void 0, void 0, void 0, function* () {
         console.error('Failed to load models:', error);
     }
 });
-// 모델을 로드합니다.
+//모델을 로드합니다.
 loadModels().catch(error => {
     console.error('Error during model loading:', error);
 });

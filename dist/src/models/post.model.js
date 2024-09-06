@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
-// Sequelize 모델 정의
+//Sequelize 모델 정의
 class Post extends sequelize_1.Model {
     static initModel(sequelize) {
         Post.init({
@@ -11,12 +11,18 @@ class Post extends sequelize_1.Model {
                 autoIncrement: true,
             },
             nickname: {
-                type: sequelize_1.DataTypes.INTEGER,
+                type: sequelize_1.DataTypes.STRING,
                 allowNull: false,
             },
             groupId: {
                 type: sequelize_1.DataTypes.INTEGER,
                 allowNull: false,
+                references: {
+                    model: "groups",
+                    key: "id",
+                },
+                onDelete: "CASCADE",
+                onUpdate: "CASCADE",
             },
             title: {
                 type: sequelize_1.DataTypes.STRING,
@@ -32,10 +38,6 @@ class Post extends sequelize_1.Model {
             },
             imageUrl: {
                 type: sequelize_1.DataTypes.STRING,
-                allowNull: true,
-            },
-            tags: {
-                type: sequelize_1.DataTypes.ARRAY(sequelize_1.DataTypes.STRING),
                 allowNull: true,
             },
             location: {
@@ -64,31 +66,31 @@ class Post extends sequelize_1.Model {
                 type: sequelize_1.DataTypes.DATE,
                 allowNull: true,
             },
+            likeCount: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
+            commentCount: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: false,
+                defaultValue: 0,
+            },
         }, {
             sequelize,
             modelName: "Post",
             tableName: "posts",
             charset: "utf8",
-            collate: "utf8_general_ci", // 한글 저장
+            collate: "utf8_general_ci",
             timestamps: true,
-            underscored: true, // 필드 이름을 snake_case로 자동 변환
+            underscored: true,
         });
     }
-    // 관계 설정
     static associate(models) {
-        Post.belongsTo(models.User, { foreignKey: "nickname", as: "user" });
         Post.belongsTo(models.Group, { foreignKey: "groupId", as: "group" });
         Post.hasMany(models.Comment, { foreignKey: "postId", as: "comments" });
-        Post.belongsToMany(models.Tag, {
-            through: models.PostTag,
-            foreignKey: "postId",
-            as: "tags",
-        });
-        Post.belongsToMany(models.User, {
-            through: models.PostLike,
-            foreignKey: "postId",
-            as: "likedBy",
-        });
+        Post.belongsToMany(models.Tag, { through: models.PostTag, as: 'tags', foreignKey: 'postId' });
+        Post.hasMany(models.PostLike, { foreignKey: 'postId' });
     }
 }
 exports.default = Post;
