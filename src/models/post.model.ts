@@ -32,7 +32,7 @@ interface PostCreationAttributes
     | "tags"
   > {}
 
-// Sequelize 모델 정의
+//Sequelize 모델 정의
 class Post
   extends Model<PostAttributes, PostCreationAttributes>
   implements PostAttributes
